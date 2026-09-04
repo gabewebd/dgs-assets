@@ -1,13 +1,18 @@
-/* ============================================================
-   LEGAL / POLICY PAGES — TABLE OF CONTENTS ACTIVE STATE
-   Tracks which section heading is currently in view and marks
-   the matching table-of-contents link with .is-active. Mirrors
-   the Growth Hub article template's on-page nav behavior
-   (js/dgs-growth-article.js), scoped to .dgs-legal-toc.
-   ============================================================ */
 (function () {
   'use strict';
 
+  /* ─── Mobile TOC collapse/expand ─── */
+  var toc = document.querySelector('.dgs-legal-toc');
+  var tocToggle = document.querySelector('.dgs-legal-toc-toggle');
+  if (toc && tocToggle) {
+    tocToggle.addEventListener('click', function () {
+      var open = toc.getAttribute('data-open') === 'true';
+      toc.setAttribute('data-open', open ? 'false' : 'true');
+      tocToggle.setAttribute('aria-expanded', open ? 'false' : 'true');
+    });
+  }
+
+  /* ─── Active-state tracking ─── */
   var tocLinks = Array.prototype.slice.call(document.querySelectorAll('.dgs-legal-toc-list a[href^="#"]'));
   if (!tocLinks.length) return;
 
