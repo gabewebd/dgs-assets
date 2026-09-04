@@ -1,0 +1,741 @@
+/* ============================================================
+   DIGITAL GROWTHSCALE - CAREERS STYLESHEET (dgs-careers.css)
+   ============================================================ */
+
+/* ─── CAREERS HERO OVERRIDES ─── */
+.dgs-hero-careers {
+  padding: 8rem 0 7rem;
+  background-color: var(--bg-deep-navy, #0A1F33) !important;
+  color: #ffffff;
+  position: relative;
+  overflow: hidden;
+  text-align: center;
+  isolation: isolate;
+}
+
+@media (min-width: 1024px) {
+  .dgs-hero-careers {
+    padding: 10rem 0 8rem;
+  }
+}
+
+.dgs-hero-careers .dgs-hero-content,
+.dgs-hero-careers .dgs-service-hero-copy {
+  max-width: 860px;
+  margin: 0 auto;
+  text-align: center;
+}
+
+.dgs-hero-careers h1 {
+  font-family: var(--font-heading, 'Sora', sans-serif);
+  font-size: clamp(2.4rem, 5vw, 4rem);
+  font-weight: 800;
+  line-height: 1.12;
+  letter-spacing: -0.025em;
+  color: #ffffff;
+  margin: 0 auto 1.5rem;
+}
+
+/* ─── CAREERS WHY-JOIN + OPEN ROLES SECTIONS ─── */
+#careers-why.dgs-section,
+#careers-hub.dgs-section {
+  padding-top: 6rem;
+  padding-bottom: 7rem;
+  background: var(--bg-white, #ffffff);
+}
+
+/* #careers-why and #careers-hub are adjacent siblings — giving both the
+   section's full bottom AND top padding stacked them into one oversized
+   gap between the pillar row and "Open Roles". #careers-why only needs
+   its own top padding; the touching bottom edge is covered by
+   #careers-hub's top padding instead. */
+#careers-why.dgs-section {
+  padding-bottom: 0;
+}
+
+@media (min-width: 1024px) {
+  #careers-why.dgs-section,
+  #careers-hub.dgs-section {
+    padding-top: 7.5rem;
+    padding-bottom: 8.5rem;
+  }
+
+  #careers-why.dgs-section {
+    padding-bottom: 0;
+  }
+}
+
+/* Photo left, heading + copy + value grid right */
+.dgs-careers-why-layout {
+  display: grid;
+  grid-template-columns: minmax(0, 0.85fr) minmax(0, 1.15fr);
+  gap: 3rem;
+  align-items: center;
+}
+
+.dgs-careers-why-media {
+  align-self: stretch;
+  border-radius: var(--radius-lg, 14px);
+  overflow: hidden;
+}
+
+.dgs-careers-why-media img {
+  width: 100%;
+  height: 100%;
+  min-height: 480px;
+  object-fit: cover;
+  display: block;
+}
+
+.dgs-careers-why-content {
+  display: flex;
+  flex-direction: column;
+  gap: 2.5rem;
+}
+
+@media (max-width: 900px) {
+  .dgs-careers-why-layout {
+    grid-template-columns: 1fr;
+    gap: 2rem;
+  }
+
+  .dgs-careers-why-media img {
+    min-height: 260px;
+  }
+}
+
+.dgs-careers-why-head {
+  text-align: left;
+}
+
+/* .dgs-section--light span (dgs-common.css) is a class+element pair —
+   more specific than the bare .dgs-eyebrow class — so without this
+   scoped override the eyebrow silently rendered navy instead of teal. */
+#careers-why .dgs-eyebrow,
+#careers-hub .dgs-eyebrow {
+  color: var(--action-teal, #00b39f);
+}
+
+.dgs-careers-why-head .dgs-careers-sticky-heading {
+  font-family: var(--font-heading, 'Sora', sans-serif);
+  font-size: clamp(1.8rem, 3.2vw, 2.3rem);
+  color: var(--bg-deep-navy, #0A1F33);
+  font-weight: 800;
+  line-height: 1.2;
+  margin: 0.75rem 0 0 0;
+  letter-spacing: -0.02em;
+}
+
+.dgs-careers-why-head-copy {
+  color: var(--bg-deep-navy, #0A1F33);
+  font-size: 0.98rem;
+  line-height: 1.65;
+  margin: 1.5rem 0 0 0;
+}
+
+/* ─── VALUE STACK & 4 PILLAR ITEMS ─── */
+.dgs-careers-values-stack {
+  display: grid;
+  grid-template-columns: 1fr;
+  gap: 2.5rem 2rem;
+}
+
+@media (min-width: 600px) {
+  .dgs-careers-values-stack {
+    grid-template-columns: repeat(2, 1fr);
+  }
+}
+
+/* Flat icon/title/desc pattern, matching industries.html's
+   .dgs-industry-select-card family (no card border/shadow, icon box +
+   title + description + bottom divider). */
+.dgs-careers-value-pill {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  height: 100%;
+  padding-bottom: 1.5rem;
+  border-bottom: 1px solid rgba(10, 31, 51, 0.09);
+  transition: transform 0.35s var(--ease-out, ease-out);
+}
+
+.dgs-careers-value-pill:hover {
+  transform: translateY(-3px);
+}
+
+.dgs-careers-value-icon {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 56px;
+  height: 56px;
+  border-radius: 12px;
+  background: linear-gradient(145deg, #e3f7f5 0%, #e7f2fe 100%);
+  border: 1px solid rgba(0, 179, 159, 0.22);
+  color: var(--bg-deep-navy, #0A1F33);
+  margin-bottom: 1.1rem;
+  transition: all 0.35s var(--ease-out, ease-out);
+}
+
+.dgs-careers-value-pill:hover .dgs-careers-value-icon {
+  background: var(--action-teal, #00b39f);
+  color: #ffffff;
+  border-color: var(--action-teal, #00b39f);
+  box-shadow: 0 6px 18px rgba(0, 179, 159, 0.28);
+}
+
+/* Without an explicit size, each inline SVG falls back to its own
+   intrinsic/default box (browser-dependent, not the viewBox), so the four
+   icons rendered at different, inconsistent sizes. Pin them all to the
+   same 28px, matching industries.html's .dgs-ind-icon-box svg. */
+.dgs-careers-value-icon svg {
+  width: 28px;
+  height: 28px;
+}
+
+/* Scoped under .dgs-careers-value-pill (not bare) so these beat the
+   sitewide .dgs-section--light h4/p color rule in dgs-common.css, same
+   specificity issue as the talent-community AEO card above. */
+.dgs-careers-value-pill .dgs-careers-value-title {
+  font-family: var(--font-heading, 'Sora', sans-serif);
+  font-size: 1.1rem;
+  font-weight: 700;
+  color: var(--bg-deep-navy, #0A1F33);
+  margin: 0 0 0.5rem 0;
+  transition: color 0.3s ease;
+}
+
+.dgs-careers-value-pill:hover .dgs-careers-value-title {
+  color: var(--action-teal, #00b39f);
+}
+
+.dgs-careers-value-pill .dgs-careers-value-desc {
+  font-family: var(--font-body, 'Inter', sans-serif);
+  font-size: 0.9rem;
+  color: var(--text-dark-muted, #5a6e85);
+  margin: 0;
+  line-height: 1.6;
+}
+
+/* ─── OPEN ROLES SECTION ─── */
+.dgs-roles-section-head {
+  max-width: 720px;
+  margin: 0 auto 3rem;
+  text-align: center;
+}
+
+.dgs-roles-section-heading {
+  font-family: var(--font-heading, 'Sora', sans-serif);
+  font-size: clamp(1.9rem, 3.4vw, 2.5rem);
+  color: var(--bg-deep-navy, #0A1F33);
+  font-weight: 800;
+  margin: 0.75rem 0 1rem 0;
+  letter-spacing: -0.02em;
+}
+
+.dgs-roles-section-sub {
+  color: var(--text-dark-muted, #5a6e85);
+  font-family: var(--font-body, 'Inter', sans-serif);
+  font-size: 1rem;
+  margin: 0;
+}
+
+/* ─── PREMIUM ROLE CARDS ─── */
+.dgs-roles-list {
+  display: grid;
+  grid-template-columns: 1fr;
+  gap: 1.5rem;
+}
+
+@media (min-width: 700px) {
+  .dgs-roles-list {
+    grid-template-columns: repeat(2, 1fr);
+  }
+}
+
+@media (min-width: 1100px) {
+  .dgs-roles-list {
+    grid-template-columns: repeat(3, 1fr);
+  }
+}
+
+.dgs-role-card-premium {
+  display: flex;
+  flex-direction: column;
+  gap: 1.15rem;
+  padding: 2rem;
+  background: #ffffff;
+  border: 1px solid #E2E8F0;
+  border-radius: var(--radius-xl, 16px);
+  box-shadow: 0 4px 20px rgba(10, 31, 51, 0.03);
+  transition: all 0.35s var(--ease-out, ease-out);
+  position: relative;
+}
+
+.dgs-role-card-premium:hover {
+  border-color: rgba(0, 179, 159, 0.3);
+  transform: translateY(-4px);
+  box-shadow: 0 16px 36px rgba(10, 31, 51, 0.07);
+}
+
+.dgs-role-header-row {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.dgs-role-dept-tag {
+  font-family: var(--font-body, 'Inter', sans-serif);
+  font-size: 0.72rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.1em;
+  color: var(--action-teal, #00b39f);
+  background: rgba(0, 179, 159, 0.08);
+  border: 1px solid rgba(0, 179, 159, 0.2);
+  padding: 0.35rem 0.8rem;
+  border-radius: 9999px;
+}
+
+.dgs-role-meta-badge {
+  font-family: var(--font-body, 'Inter', sans-serif);
+  font-size: 0.82rem;
+  font-weight: 600;
+  color: var(--text-dark-muted, #5a6e85);
+}
+
+.dgs-role-body h4 {
+  font-family: var(--font-heading, 'Sora', sans-serif);
+  font-size: 1.3rem;
+  font-weight: 800;
+  color: var(--bg-deep-navy, #0A1F33);
+  margin: 0 0 0.4rem 0;
+  letter-spacing: -0.015em;
+  transition: color 0.3s ease;
+}
+
+.dgs-role-body h4 a {
+  color: inherit;
+  text-decoration: none;
+}
+
+.dgs-role-card-premium:hover .dgs-role-body h4 {
+  color: var(--action-teal, #00b39f);
+}
+
+.dgs-role-body p {
+  font-family: var(--font-body, 'Inter', sans-serif);
+  font-size: 0.92rem;
+  color: var(--text-dark-muted, #5a6e85);
+  line-height: 1.6;
+  margin: 0;
+}
+
+.dgs-role-footer {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 1.5rem;
+}
+
+/* ─── HIRING PROCESS (CSR-track format shared with solution pages,
+   from dgs-solution-detail.css: .dgs-csr-layout/-sticky/-track/-step) ─── */
+#careers-hiring-process.dgs-section {
+  padding-top: 6rem;
+  padding-bottom: 3.5rem;
+}
+
+@media (min-width: 1024px) {
+  #careers-hiring-process.dgs-section {
+    padding-top: 7.5rem;
+    padding-bottom: 4.5rem;
+  }
+}
+
+/* ─── TALENT COMMUNITY (navy AEO-banner card, adapted from
+   dgs-industries-detail.css's .dgs-aeo-navy-banner family, minus the
+   ecosystem-stack marquee/badge side) ─── */
+#careers-talent-community.dgs-section {
+  padding-top: 3.5rem;
+  padding-bottom: 3.5rem;
+}
+
+@media (min-width: 1024px) {
+  #careers-talent-community.dgs-section {
+    padding-top: 4.5rem;
+    padding-bottom: 4.5rem;
+  }
+}
+
+.dgs-aeo-navy-banner {
+  background: #0A1F33;
+  border-radius: var(--radius-xl, 24px);
+  padding: clamp(2.25rem, 4vw, 3.5rem);
+  border: 1px solid rgba(255, 255, 255, 0.12);
+  box-shadow: 0 24px 50px rgba(10, 31, 51, 0.35);
+  position: relative;
+  overflow: hidden;
+}
+
+.dgs-aeo-navy-banner::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  right: 0;
+  width: 450px;
+  height: 100%;
+  background: radial-gradient(circle at 100% 50%, rgba(0, 179, 159, 0.18) 0%, transparent 70%);
+  pointer-events: none;
+}
+
+/* Careers banner gets a soft, contained glow centered under the ring
+   composition (kept tight so it reads as a highlight, not a wash over the
+   whole card). Scoped to this page only so the shared .dgs-aeo-navy-banner
+   on industries pages is untouched. */
+#careers-talent-community .dgs-aeo-navy-banner::before {
+  width: 100%;
+  height: 100%;
+  background:
+    radial-gradient(circle at var(--ring-cx, 50%) var(--ring-cy, 82%), rgba(0, 179, 159, 0.34) 0%, rgba(0, 179, 159, 0.14) 28%, transparent 55%),
+    radial-gradient(circle at calc(var(--ring-cx, 50%) - 12%) calc(var(--ring-cy, 82%) - 38%), rgba(45, 127, 249, 0.14) 0%, transparent 50%);
+  animation: dgsGlowPulse 6s ease-in-out infinite;
+}
+
+@keyframes dgsGlowPulse {
+
+  0%,
+  100% {
+    opacity: 0.8;
+  }
+
+  50% {
+    opacity: 1;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  #careers-talent-community .dgs-aeo-navy-banner::before {
+    animation: none;
+  }
+}
+
+.dgs-aeo-banner-inner {
+  position: relative;
+  z-index: 1;
+}
+
+.dgs-aeo-text-side {
+  max-width: 640px;
+}
+
+/* Careers "Talent Community" banner: the ring visual's shared circle center
+   lives here as custom properties (--ring-cx/--ring-cy) so the glow
+   pseudo-elements above and the ring/badges below all stay in sync off one
+   source of truth. Mobile stacks text above, ring below, in normal flow;
+   from 1200px up the ring becomes an absolutely-positioned overlay bleeding
+   into the bottom-right corner and the banner grows tall enough to give it
+   room to be a real circle. */
+#careers-talent-community .dgs-aeo-navy-banner {
+  --ring-cx: 50%;
+  --ring-cy: 82%;
+}
+
+@media (min-width: 1200px) {
+  #careers-talent-community .dgs-aeo-navy-banner {
+    --ring-cx: 83%;
+    --ring-cy: 88%;
+    min-height: 340px;
+    display: flex;
+    align-items: center;
+  }
+}
+
+#careers-talent-community .dgs-aeo-banner-inner {
+  width: 100%;
+}
+
+/* Scoped under .dgs-aeo-navy-banner (not bare .dgs-aeo-q/.dgs-aeo-a) so
+   these beat the sitewide .dgs-section--light h2/p/span rule in
+   dgs-common.css, which otherwise wins on specificity and forces
+   dark-on-dark navy text here, effectively hiding the heading/paragraph. */
+.dgs-aeo-navy-banner .dgs-aeo-q {
+  font-family: var(--font-heading, 'Sora', sans-serif);
+  font-size: clamp(1.6rem, 3vw, 2.25rem);
+  font-weight: 700;
+  line-height: 1.25;
+  color: #ffffff;
+  margin: 0 0 1.25rem;
+}
+
+.dgs-aeo-navy-banner .dgs-text-teal {
+  color: var(--action-teal, #00b39f);
+}
+
+.dgs-aeo-navy-banner .dgs-aeo-a {
+  font-size: 1.1rem;
+  line-height: 1.75;
+  color: rgba(255, 255, 255, 0.82);
+  margin: 0 0 1.75rem;
+}
+
+.dgs-aeo-navy-banner .dgs-promise-link {
+  color: var(--action-teal, #00b39f);
+}
+
+/* Link Actions */
+.dgs-promise-link {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.45rem;
+  font-family: var(--font-body, 'Inter', sans-serif);
+  font-size: 0.92rem;
+  font-weight: 700;
+  color: var(--action-teal, #00b39f);
+  text-decoration: none;
+  transition: color 0.3s, gap 0.3s;
+}
+
+.dgs-promise-link:hover {
+  color: #008f7f;
+  gap: 0.65rem;
+}
+
+.dgs-promise-link .dgs-btn-icon svg {
+  width: 16px;
+  height: 16px;
+}
+
+/* ─── TALENT COMMUNITY RING VISUAL (responsive) ───
+   Two concentric circles whose shared center (--ring-cx/--ring-cy, set on
+   .dgs-aeo-navy-banner above) sits inside the card — so only the upper-left
+   sweep of each circle arcs across the visible area, like the reference
+   composition. Each ring carries a rotating conic-gradient "comet" masked
+   to just the stroke, giving the line itself a running, cycling motion
+   (the photo badges stay static — only the ring line moves). Badges are
+   positioned from the same shared center via translate() offsets (own
+   --dx/--dy custom properties) computed so their centers land exactly on
+   the outer or inner circumference: 1, 2, 3 = outer; 4, 5 = inner.
+
+   Below 1200px the whole thing sits in NORMAL FLOW, below the text, at a
+   scaled-down size (smaller radii + a recentered --ring-cx/--ring-cy).
+   From 1200px up it switches to an absolute overlay bleeding into the
+   card's bottom-right corner at full size. */
+.dgs-talent-ring {
+  display: block;
+  position: relative;
+  height: 260px;
+  margin-top: 2.5rem;
+  pointer-events: none;
+  z-index: 0;
+}
+
+@media (min-width: 1200px) {
+  .dgs-talent-ring {
+    position: absolute;
+    inset: 0;
+    height: auto;
+    margin-top: 0;
+  }
+}
+
+.dgs-talent-ring-circle {
+  position: absolute;
+  top: var(--ring-cy);
+  left: var(--ring-cx);
+  border-radius: 50%;
+  transform: translate(-50%, -50%);
+}
+
+.dgs-talent-ring-circle--outer {
+  width: 284px;
+  height: 284px;
+  border: 1.5px solid rgba(0, 179, 159, 0.45);
+}
+
+.dgs-talent-ring-circle--inner {
+  width: 118px;
+  height: 118px;
+  border: 1.5px solid rgba(45, 127, 249, 0.4);
+}
+
+@media (min-width: 1200px) {
+  .dgs-talent-ring-circle--outer {
+    width: 490px;
+    height: 490px;
+  }
+
+  .dgs-talent-ring-circle--inner {
+    width: 204px;
+    height: 204px;
+  }
+}
+
+.dgs-talent-ring-circle::after {
+  content: '';
+  position: absolute;
+  inset: 0;
+  border-radius: 50%;
+  padding: 1px;
+  background: conic-gradient(from 0deg,
+      transparent 0deg,
+      transparent 300deg,
+      rgba(0, 179, 159, 0.9) 335deg,
+      #5be8d3 350deg,
+      rgba(0, 179, 159, 0.9) 360deg);
+  -webkit-mask: linear-gradient(#fff 0 0) content-box, linear-gradient(#fff 0 0);
+  -webkit-mask-composite: xor;
+  mask-composite: exclude;
+}
+
+.dgs-talent-ring-circle--outer::after {
+  animation: dgsRingSpin 7s linear infinite;
+}
+
+.dgs-talent-ring-circle--inner::after {
+  animation: dgsRingSpin 4.5s linear infinite reverse;
+}
+
+@keyframes dgsRingSpin {
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .dgs-talent-ring-circle::after {
+    animation: none;
+  }
+}
+
+.dgs-talent-ring-icon {
+  --dx: 0px;
+  --dy: 0px;
+  position: absolute;
+  top: var(--ring-cy);
+  left: var(--ring-cx);
+  width: 44px;
+  height: 44px;
+  border-radius: 50%;
+  overflow: hidden;
+  background: rgba(255, 255, 255, 0.06);
+  border: 2px solid rgba(0, 179, 159, 0.55);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  box-shadow: 0 12px 28px rgba(4, 10, 20, 0.4);
+  transform: translate(calc(-50% + var(--dx)), calc(-50% + var(--dy)));
+}
+
+@media (min-width: 1200px) {
+  .dgs-talent-ring-icon {
+    width: 56px;
+    height: 56px;
+  }
+}
+
+.dgs-talent-ring-icon img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  display: block;
+}
+
+.dgs-talent-ring-icon--1 {
+  --dx: -109px;
+  --dy: -92px;
+}
+
+.dgs-talent-ring-icon--2 {
+  --dx: -12px;
+  --dy: -142px;
+}
+
+.dgs-talent-ring-icon--3 {
+  --dx: 100px;
+  --dy: -100px;
+}
+
+.dgs-talent-ring-icon--4 {
+  --dx: -53px;
+  --dy: -25px;
+}
+
+.dgs-talent-ring-icon--5 {
+  --dx: 49px;
+  --dy: -34px;
+}
+
+@media (min-width: 1200px) {
+  .dgs-talent-ring-icon--1 {
+    --dx: -188px;
+    --dy: -158px;
+  }
+
+  .dgs-talent-ring-icon--2 {
+    --dx: -21px;
+    --dy: -244px;
+  }
+
+  .dgs-talent-ring-icon--3 {
+    --dx: 173px;
+    --dy: -173px;
+  }
+
+  .dgs-talent-ring-icon--4 {
+    --dx: -92px;
+    --dy: -43px;
+  }
+
+  .dgs-talent-ring-icon--5 {
+    --dx: 84px;
+    --dy: -59px;
+  }
+}
+
+/* ─── CAREERS IFRAME CONTAINER ─── */
+.careers-iframe-container {
+  width: 100%;
+  max-width: 100%;
+  overflow: hidden;
+  border-radius: var(--radius-lg, 6px);
+  margin-top: 1rem;
+  margin-bottom: 2rem;
+  background: transparent;
+}
+
+.careers-iframe-container iframe {
+  width: 100%;
+  border: none;
+  min-height: 800px;
+  display: block;
+  background: transparent;
+}
+
+@media (max-width: 768px) {
+  .careers-iframe-container iframe {
+    min-height: 900px;
+  }
+}
+
+/* ============================================================
+   INLINE STYLES EXTRACTED FROM HTML (migrated from style="" attrs)
+   ============================================================ */
+.dgs-il-1d067c7072 {
+  --dgs-duotone-img:url('https://assets.cdn.filesafe.space/UAA13luwQZmtw8ObS1Su/media/6a8426db9f720b54ef09adaa.png') !important;
+}
+
+.dgs-il-f706e30f50 {
+  margin: 0.5rem 0 1.5rem !important;
+}
+
+.dgs-il-1c21f7a172 {
+  color: rgba(255, 255, 255, 0.88) !important;
+  line-height: 1.7 !important;
+  font-size: 1.05rem !important;
+  margin: 0 !important;
+}
+
+.dgs-il-4435ae4781 {
+  background-image:url('https://assets.cdn.filesafe.space/UAA13luwQZmtw8ObS1Su/media/6a841d7e45dbba232f6ab7a4.png') !important;
+}
+

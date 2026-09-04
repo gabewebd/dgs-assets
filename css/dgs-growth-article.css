@@ -1,0 +1,897 @@
+/* ============================================================
+   GROWTH HUB — ARTICLE TEMPLATE
+   Reusable editorial article system: hero, sticky on-page nav, body
+   typography, callouts, pull quotes, related content, CTA. Independent
+   stylesheet — does not touch or depend on the Careers page CSS.
+   Reused as-is for Insights, Guides, Playbooks, Case Studies, Events;
+   only the eyebrow label and category color change per content type.
+   ============================================================ */
+
+.dgs-ga {
+  --ga-navy: #0A1F33;
+  --ga-teal: #00B39F;
+  --ga-blue: #2D7FF9;
+  --ga-amber: #F5A623;
+  --ga-ink: #0A1F33;
+  --ga-muted: #5B6B7C;
+  --ga-hairline: rgba(10, 31, 51, 0.1);
+  --ga-surface: #F7F9FA;
+  --ga-cat: var(--ga-teal);
+}
+
+/* ─── Reading progress bar ─── */
+.dgs-ga-progress {
+  position: fixed;
+  top: 0;
+  left: 0;
+  height: 3px;
+  width: 0%;
+  background: var(--ga-teal);
+  z-index: 999;
+  transition: width 0.1s linear;
+}
+
+/* ─── Hero ─── */
+.dgs-ga-hero {
+  background: var(--ga-navy);
+  padding: 8.5rem 0 5.5rem;
+  color: #ffffff;
+  position: relative;
+  overflow: hidden;
+  isolation: isolate;
+}
+
+/* Soft radial glow, matching the legal/service hero treatment site-wide */
+.dgs-ga-hero::before {
+  content: '';
+  position: absolute;
+  left: 50%;
+  top: -18%;
+  width: 56vw;
+  height: 22rem;
+  min-width: 26rem;
+  transform: translateX(-50%);
+  background: radial-gradient(circle, rgba(0, 179, 159, 0.18) 0%, rgba(45, 127, 249, 0.08) 45%, transparent 75%);
+  filter: blur(70px);
+  pointer-events: none;
+  z-index: 0;
+}
+
+/* Matches the global .dgs-container gutters (nav-aligned), not the old
+   fixed 7rem/1.25rem pair — article pages should share the site grid. */
+.dgs-ga-hero-inner {
+  max-width: 100%;
+  margin: 0 auto;
+  padding: 0 1rem;
+  position: relative;
+  z-index: 1;
+}
+
+@media (min-width: 768px) {
+  .dgs-ga-hero-inner {
+    padding: 0 2rem;
+  }
+}
+
+@media (min-width: 1024px) {
+  .dgs-ga-hero-inner {
+    padding: 0 3.5rem;
+  }
+}
+
+.dgs-ga-back {
+  display: flex;
+  width: fit-content;
+  align-items: center;
+  gap: 0.4rem;
+  font-family: var(--font-body);
+  font-size: 0.88rem;
+  font-weight: 600;
+  color: rgba(255, 255, 255, 0.65);
+  text-decoration: none;
+  margin-bottom: 2rem;
+  transition: color 0.25s ease;
+}
+
+.dgs-ga-back svg {
+  width: 16px;
+  height: 16px;
+}
+
+.dgs-ga-back:hover {
+  color: var(--ga-teal);
+}
+
+.dgs-ga-cat {
+  display: inline-block;
+  font-family: var(--font-body);
+  font-size: 0.78rem;
+  font-weight: 700;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  color: var(--ga-cat);
+  margin-bottom: 1.1rem;
+}
+
+.dgs-ga-title {
+  font-family: var(--font-heading);
+  font-weight: 800;
+  font-size: clamp(2rem, 4.2vw, 3.1rem);
+  line-height: 1.15;
+  letter-spacing: -0.02em;
+  color: #ffffff;
+  margin: 0 0 1.75rem !important;
+}
+
+.dgs-ga-dek {
+  font-family: var(--font-body);
+  font-size: 1.1rem;
+  line-height: 1.65;
+  color: rgba(255, 255, 255, 0.78);
+  max-width: 62ch;
+  margin: 0 0 2rem !important;
+}
+
+.dgs-ga-meta {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 0.5rem;
+  font-family: var(--font-body);
+  font-size: 0.88rem;
+  color: rgba(255, 255, 255, 0.62);
+  padding-top: 1.5rem;
+  border-top: 1px solid rgba(255, 255, 255, 0.12);
+}
+
+.dgs-ga-meta strong {
+  color: #ffffff;
+  font-weight: 600;
+}
+
+.dgs-ga-meta span:not(:last-child)::after {
+  content: '\00b7';
+  margin-left: 0.55rem;
+  color: rgba(255, 255, 255, 0.3);
+}
+
+/* ─── Hero image ─── */
+.dgs-ga-cover {
+  max-width: 100%;
+  margin: -2rem auto 0;
+  padding: 0 1rem;
+  position: relative;
+}
+
+@media (min-width: 768px) {
+  .dgs-ga-cover {
+    padding: 0 2rem;
+  }
+}
+
+@media (min-width: 1024px) {
+  .dgs-ga-cover {
+    padding: 0 3.5rem;
+  }
+}
+
+.dgs-ga-cover img {
+  width: 100%;
+  aspect-ratio: 16 / 8.5;
+  object-fit: cover;
+  border-radius: var(--radius-lg, 14px);
+  display: block;
+  box-shadow: 0 24px 60px rgba(10, 31, 51, 0.18);
+}
+
+/* ─── Layout: article body + sticky sidebar ─── */
+.dgs-ga-layout {
+  position: relative;
+  z-index: 0;
+  background: #ffffff;
+  max-width: 100%;
+  margin: 0 auto;
+  padding: 4.5rem 1rem 2rem;
+  display: grid;
+  grid-template-columns: 1fr;
+  gap: 3rem;
+}
+
+@media (min-width: 768px) {
+  .dgs-ga-layout {
+    padding: 4.5rem 2rem 2rem;
+  }
+}
+
+@media (min-width: 1024px) {
+  .dgs-ga-layout {
+    padding: 4.5rem 3.5rem 2rem;
+  }
+}
+
+/* Full-bleed white background behind the article body, independent of
+   the sitewide dark `body { background: navy }` rule. */
+.dgs-ga-layout::before {
+  content: '';
+  position: absolute;
+  z-index: -1;
+  top: 0;
+  bottom: 0;
+  left: 50%;
+  width: 100vw;
+  transform: translateX(-50%);
+  background: #ffffff;
+}
+
+@media (min-width: 960px) {
+  .dgs-ga-layout {
+    grid-template-columns: 240px 1fr;
+    gap: 4.5rem;
+    align-items: start;
+  }
+}
+
+/* ─── On-page nav / TOC ─── */
+.dgs-ga-toc {
+  order: -1;
+  min-width: 0;
+  max-width: 100%;
+}
+
+@media (min-width: 960px) {
+  .dgs-ga-toc {
+    position: sticky;
+    top: 7.5rem;
+    order: 0;
+    max-width: 240px;
+  }
+}
+
+.dgs-ga-toc-label {
+  display: block;
+  font-family: var(--font-body);
+  font-size: 0.72rem;
+  font-weight: 700;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  color: var(--ga-muted);
+  margin-bottom: 0.9rem;
+}
+
+/* Mobile shows the disclosure button instead, which already carries
+   this same label text. */
+@media (max-width: 959px) {
+  .dgs-ga-toc-label {
+    display: none;
+  }
+}
+
+/* Mobile: collapsible disclosure */
+.dgs-ga-toc-toggle {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  width: 100%;
+  background: var(--ga-surface);
+  border: 1px solid var(--ga-hairline);
+  border-radius: var(--radius-md, 10px);
+  padding: 0.85rem 1.1rem;
+  cursor: pointer;
+  font-family: var(--font-body);
+  font-size: 0.85rem;
+  font-weight: 700;
+  color: var(--ga-ink);
+}
+
+@media (min-width: 960px) {
+  .dgs-ga-toc-toggle {
+    display: none;
+  }
+}
+
+.dgs-ga-toc-toggle svg {
+  width: 16px;
+  height: 16px;
+  transition: transform 0.3s ease;
+}
+
+.dgs-ga-toc[data-open="true"] .dgs-ga-toc-toggle svg {
+  transform: rotate(180deg);
+}
+
+.dgs-ga-toc-list {
+  list-style: none;
+  margin: 0.9rem 0 0 !important;
+  padding: 0.25rem 0 0 1.4rem !important;
+  border-left: 2px solid var(--ga-hairline);
+  display: flex;
+  flex-direction: column;
+  gap: 0.65rem;
+  max-width: 100%;
+}
+
+@media (max-width: 959px) {
+  .dgs-ga-toc-list {
+    display: none;
+    margin-top: 1rem !important;
+  }
+  .dgs-ga-toc[data-open="true"] .dgs-ga-toc-list {
+    display: flex;
+  }
+}
+
+.dgs-ga-toc-list a {
+  display: block;
+  font-family: var(--font-body);
+  font-size: 0.86rem;
+  line-height: 1.45;
+  color: var(--ga-muted);
+  text-decoration: none;
+  transition: color 0.2s ease;
+  overflow-wrap: break-word;
+  word-break: break-word;
+}
+
+.dgs-ga-toc-list a:hover,
+.dgs-ga-toc-list a.is-active {
+  color: var(--ga-navy);
+  font-weight: 600;
+}
+
+/* ─── Article body typography ─── */
+.dgs-ga-body {
+  font-family: var(--font-body);
+  color: var(--ga-ink);
+  max-width: 76ch;
+}
+
+.dgs-ga-body > p {
+  font-size: 1.1rem;
+  line-height: 1.85;
+  color: #2A3B4D;
+  margin: 0 0 1.6rem;
+}
+
+.dgs-ga-body h2 {
+  font-family: var(--font-heading);
+  font-weight: 800;
+  font-size: clamp(1.8rem, 3.2vw, 2.4rem);
+  line-height: 1.2;
+  letter-spacing: -0.015em;
+  color: var(--ga-navy);
+  margin: 3.5rem 0 1.25rem;
+  scroll-margin-top: 6.5rem;
+}
+
+.dgs-ga-body h2:first-child {
+  margin-top: 0;
+}
+
+.dgs-ga-body h3 {
+  font-family: var(--font-heading);
+  font-weight: 700;
+  font-size: 1.4rem;
+  line-height: 1.3;
+  color: var(--ga-navy);
+  margin: 2.4rem 0 0.9rem;
+  scroll-margin-top: 6.5rem;
+}
+
+.dgs-ga-body ul,
+.dgs-ga-body ol {
+  margin: 0 0 1.5rem;
+  padding-left: 1.35rem;
+  color: #2A3B4D;
+  font-size: 1.02rem;
+  line-height: 1.8;
+}
+
+.dgs-ga-body li {
+  margin-bottom: 0.5rem;
+}
+
+.dgs-ga-body li:last-child {
+  margin-bottom: 0;
+}
+
+.dgs-ga-body strong {
+  color: var(--ga-navy);
+  font-weight: 700;
+}
+
+.dgs-ga-body a {
+  color: var(--ga-teal);
+  font-weight: 600;
+  text-decoration: underline;
+  text-decoration-color: rgba(0, 179, 159, 0.35);
+  text-underline-offset: 2px;
+}
+
+/* ─── Callout: "DGS PERSPECTIVE" ─── */
+.dgs-ga-callout {
+  background: var(--ga-navy);
+  border-radius: var(--radius-md, 10px);
+  padding: 1.9rem 2rem;
+  margin: 2.25rem 0;
+  border-left: 4px solid var(--ga-teal);
+}
+
+.dgs-ga-callout-label {
+  display: block;
+  font-family: var(--font-body);
+  font-size: 0.7rem;
+  font-weight: 700;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  color: var(--ga-teal);
+  margin-bottom: 0.65rem;
+}
+
+.dgs-ga-callout p {
+  font-family: var(--font-heading);
+  font-weight: 600;
+  font-size: 1.15rem;
+  line-height: 1.55;
+  color: #ffffff;
+  margin: 0;
+}
+
+/* ─── Pull quote ─── */
+.dgs-ga-pullquote {
+  border-left: 3px solid var(--ga-hairline);
+  padding-left: 1.5rem;
+  margin: 2.25rem 0;
+}
+
+.dgs-ga-pullquote p {
+  font-family: var(--font-heading);
+  font-weight: 700;
+  font-size: 1.35rem;
+  line-height: 1.45;
+  color: var(--ga-navy);
+  margin: 0;
+  letter-spacing: -0.01em;
+}
+
+/* ─── Key takeaway box ─── */
+.dgs-ga-takeaway {
+  background: var(--ga-surface);
+  border: 1px solid var(--ga-hairline);
+  border-radius: var(--radius-md, 10px);
+  padding: 1.75rem 2rem;
+  margin: 2.5rem 0 0;
+}
+
+.dgs-ga-takeaway-label {
+  display: block;
+  font-family: var(--font-body);
+  font-size: 0.7rem;
+  font-weight: 700;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  color: var(--ga-teal);
+  margin-bottom: 0.6rem;
+}
+
+.dgs-ga-takeaway p {
+  font-family: var(--font-body);
+  font-size: 1rem;
+  line-height: 1.7;
+  color: #2A3B4D;
+  margin: 0;
+}
+
+/* ─── Author strip ─── */
+.dgs-ga-author {
+  display: flex;
+  align-items: center;
+  gap: 0.85rem;
+  margin: 3rem 0 0;
+  padding-top: 2rem;
+  border-top: 1px solid var(--ga-hairline);
+}
+
+/* .dgs-ga-author-mark (the "DGS" avatar circle) removed from every
+   article's byline; rule intentionally left out. */
+.dgs-ga-author-name {
+  font-family: var(--font-body);
+  font-weight: 700;
+  font-size: 0.92rem;
+  color: var(--ga-navy);
+}
+
+.dgs-ga-author-role {
+  font-family: var(--font-body);
+  font-size: 0.82rem;
+  color: var(--ga-muted);
+}
+
+/* ─── Keep Reading / related articles ─── */
+.dgs-ga-related {
+  background: var(--ga-surface);
+  padding: 5rem 0;
+}
+
+.dgs-ga-related-inner {
+  max-width: 100%;
+  margin: 0 auto;
+  padding: 0 1rem;
+}
+
+@media (min-width: 768px) {
+  .dgs-ga-related-inner {
+    padding: 0 2rem;
+  }
+}
+
+@media (min-width: 1024px) {
+  .dgs-ga-related-inner {
+    padding: 0 3.5rem;
+  }
+}
+
+.dgs-ga-related-label {
+  font-family: var(--font-body);
+  font-size: 0.74rem;
+  font-weight: 700;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  color: var(--ga-teal);
+  margin-bottom: 0.6rem;
+  display: block;
+}
+
+.dgs-ga-related-title {
+  font-family: var(--font-heading);
+  font-weight: 800;
+  font-size: clamp(1.35rem, 2.2vw, 1.75rem);
+  color: var(--ga-navy);
+  margin: 0 !important;
+}
+
+/* Article pages: heading + a single "View all" link, no card grid (that
+   grid markup/CSS below is still shared with — and stays live for —
+   Growth Hub's own "Thought Leadership" section). */
+.dgs-ga-related-head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 2rem;
+  flex-wrap: wrap;
+}
+
+/* The link itself is the actual .dgs-promise-link class (dgs-common.css) —
+   same component as "Read More" / "Apply for Position" on careers.html —
+   so its color, underline and hover behavior come from there. This rule
+   only supplies the one thing that component doesn't set: keeping the
+   link from shrinking inside the .dgs-ga-related-head flex row. */
+.dgs-ga-related-viewall {
+  flex-shrink: 0;
+}
+
+.dgs-ga-related-grid {
+  display: grid;
+  grid-template-columns: 1fr;
+  gap: 2.25rem 1.75rem;
+}
+
+@media (min-width: 640px) {
+  .dgs-ga-related-grid {
+    grid-template-columns: repeat(2, 1fr);
+  }
+}
+
+@media (min-width: 980px) {
+  .dgs-ga-related-grid {
+    grid-template-columns: repeat(3, 1fr);
+  }
+}
+
+.dgs-ga-related-card {
+  display: flex;
+  flex-direction: column;
+  height: 100%;
+  text-decoration: none;
+  transition: opacity 0.3s ease, transform 0.3s ease;
+}
+
+.dgs-ga-related-media {
+  position: relative;
+  aspect-ratio: 16 / 8.5;
+  border-radius: var(--radius-md, 10px);
+  overflow: hidden;
+  margin-bottom: 1.1rem;
+  background: var(--ga-navy);
+}
+
+.dgs-ga-related-media img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  display: block;
+  transition: transform 0.6s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+.dgs-ga-related-card:hover .dgs-ga-related-media img {
+  transform: scale(1.045);
+}
+
+.dgs-ga-related-body {
+  display: flex;
+  flex-direction: column;
+  flex: 1;
+}
+
+.dgs-ga-related-cat {
+  display: block;
+  font-family: var(--font-body);
+  font-size: 0.72rem;
+  font-weight: 700;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  color: var(--ga-teal, #00B39F) !important;
+  margin-bottom: 0.5rem;
+}
+
+.dgs-ga-related-card-title {
+  font-family: var(--font-heading);
+  font-weight: 700;
+  font-size: 1rem;
+  line-height: 1.35;
+  letter-spacing: -0.005em;
+  color: var(--ga-navy);
+  margin: 0 0 0.75rem !important;
+}
+
+.dgs-ga-related-desc {
+  font-family: var(--font-body);
+  font-size: 0.9rem;
+  line-height: 1.6;
+  color: var(--ga-ink, #0A1F33);
+  margin: 0 0 1rem !important;
+  display: -webkit-box;
+  -webkit-line-clamp: 2;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+}
+
+.dgs-ga-related-foot {
+  margin-top: auto;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.75rem;
+}
+
+.dgs-ga-related-meta {
+  font-family: var(--font-body);
+  font-size: 0.78rem;
+  color: var(--ga-muted);
+}
+
+.dgs-ga-related-read {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.4rem;
+  font-family: var(--font-body);
+  font-size: 0.85rem;
+  font-weight: 700;
+  color: var(--ga-navy);
+  flex-shrink: 0;
+  transition: gap 0.25s ease, color 0.25s ease;
+}
+
+.dgs-ga-related-card:hover .dgs-ga-related-read {
+  gap: 0.6rem;
+  color: var(--ga-cat, var(--ga-teal));
+}
+
+.dgs-ga-related-read svg {
+  width: 15px;
+  height: 15px;
+}
+
+/* ─── Final CTA ───────────────────────────────────────────────
+   Scoped copy of the Growth Hub final CTA (.dgs-sol-final-cta, itself a
+   copy of the solutions/about final CTA — see css/dgs-growth-hub.css).
+   Article pages don't load dgs-growth-hub.css, so the rules have to live
+   here too. Keep in sync with that file if the reference CTA changes.
+   2026-08-19: replaced the old amber-pill .dgs-ga-cta with this so every
+   individual article's closing CTA matches the Growth Hub CTA exactly.
+   ------------------------------------------------------------- */
+.dgs-sol-final-cta {
+  position: relative;
+  overflow: hidden;
+  isolation: isolate;
+  background: var(--bg-navy-darkest, #0A1F33) !important;
+  -webkit-mask-image: linear-gradient(to bottom, transparent, black 12%, black 88%, transparent);
+  mask-image: linear-gradient(to bottom, transparent, black 12%, black 88%, transparent);
+}
+
+/* faded photo background */
+.dgs-sol-final-bg {
+  position: absolute;
+  inset: 0;
+  z-index: 0;
+  background-size: cover;
+  background-position: center;
+  opacity: 0.16;
+  mask-image: radial-gradient(ellipse 85% 100% at 50% 0%, black, transparent 72%);
+  -webkit-mask-image: radial-gradient(ellipse 85% 100% at 50% 0%, black, transparent 72%);
+  pointer-events: none;
+}
+
+.dgs-sol-final-cta::before {
+  content: none;
+}
+
+/* breathing teal/blue aurora */
+.dgs-sol-final-cta::after {
+  content: "";
+  position: absolute;
+  left: 50%;
+  top: 50%;
+  width: 70vw;
+  height: 50vh;
+  transform: translate(-50%, -50%);
+  border-radius: 50%;
+  filter: blur(80px);
+  pointer-events: none;
+  z-index: 0;
+  background: radial-gradient(circle at 50% 50%,
+      rgba(0, 179, 159, 0.12) 0%,
+      rgba(45, 127, 249, 0.12) 40%,
+      transparent 70%);
+  animation: dgs-sol-cta-breathe 8s ease-in-out infinite alternate;
+}
+
+@keyframes dgs-sol-cta-breathe {
+  0%   { transform: translate(-50%, -50%) scale(1);    opacity: 0.5; }
+  100% { transform: translate(-50%, -50%) scale(1.15); opacity: 0.85; }
+}
+
+/* lift real content above the decorative layers */
+.dgs-sol-final-cta > *:not(.dgs-sol-final-bg) {
+  position: relative;
+  z-index: 2;
+}
+
+/* Heading: two clean lines + white gradient text-glow */
+.dgs-sol-final-cta h2 {
+  max-width: 66rem;
+  font-size: clamp(1.55rem, 2.6vw, 2.15rem) !important;
+  line-height: 1.22;
+  background: linear-gradient(180deg, #ffffff 0%, rgba(255, 255, 255, 0.6) 100%);
+  -webkit-background-clip: text;
+  background-clip: text;
+  -webkit-text-fill-color: transparent;
+  filter: drop-shadow(0 0 30px rgba(255, 255, 255, 0.12));
+}
+
+.dgs-sol-final-cta h2 .dgs-text-accent {
+  -webkit-text-fill-color: var(--action-teal);
+  filter: none;
+}
+
+.dgs-sol-final-ctas {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: center;
+  gap: 1.25rem;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .dgs-sol-final-cta::after {
+    animation: none;
+    opacity: 0.65;
+  }
+}
+
+/* ─── Back to top ───
+   Solid teal circle (site's standard "solid teal badge" treatment, e.g.
+   .dgs-timeline-badge), not the page's dark navy — a navy fill nearly
+   disappeared against dark sections; teal reads clearly on both light
+   and dark backgrounds. */
+.dgs-ga-top {
+  position: fixed;
+  right: 1.5rem;
+  bottom: 1.5rem;
+  width: 46px;
+  height: 46px;
+  border-radius: 50%;
+  background: var(--action-teal, #00B39F);
+  color: #ffffff;
+  border: none;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  opacity: 0;
+  pointer-events: none;
+  transform: translateY(10px);
+  transition: opacity 0.3s ease, transform 0.3s ease, background-color 0.25s ease;
+  z-index: 500;
+  box-shadow: 0 10px 24px rgba(0, 179, 159, 0.32);
+}
+
+.dgs-ga-top:hover {
+  background: var(--action-mint-hover, #1ac9b0);
+}
+
+.dgs-ga-top.is-visible {
+  opacity: 1;
+  pointer-events: auto;
+  transform: none;
+}
+
+.dgs-ga-top svg {
+  width: 18px;
+  height: 18px;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .dgs-ga-top,
+  .dgs-ga-progress {
+    transition: none;
+  }
+}
+
+/* ============================================================
+   MYTH/REALITY LIST (migrated from why-ai-why-now.html inline <style>)
+   ============================================================ */
+.dgs-ga-myth-list {
+  list-style: none;
+  margin: 0 0 1.5rem;
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+}
+
+.dgs-ga-myth-item {
+  border: 1px solid rgba(10, 31, 51, 0.1);
+  border-radius: var(--radius-md, 10px);
+  padding: 1.25rem 1.5rem;
+  background: #F7F9FA;
+}
+
+.dgs-ga-myth-item .dgs-ga-myth {
+  display: block;
+  font-weight: 700;
+  color: #0A1F33;
+  margin-bottom: 0.4rem;
+}
+
+.dgs-ga-myth-item .dgs-ga-myth::before {
+  content: '\2715\0020';
+  color: #c0392b;
+  font-weight: 700;
+}
+
+.dgs-ga-myth-item .dgs-ga-reality {
+  display: block;
+  color: #5B6B7C;
+  line-height: 1.7;
+}
+
+.dgs-ga-myth-item .dgs-ga-reality::before {
+  content: '\2713\0020Reality: ';
+  color: #00B39F;
+  font-weight: 700;
+}
+
+/* ============================================================
+   INLINE STYLES EXTRACTED FROM HTML (migrated from style="" attrs)
+   ============================================================ */
+.dgs-il-07e6d16ec2 {
+  --ga-cat: var(--ga-teal) !important;
+}
+
+.dgs-il-4858a4af7d {
+  background-image:url('https://assets.cdn.filesafe.space/UAA13luwQZmtw8ObS1Su/media/6a8578d8a3ca30469695eacd.png') !important;
+}
+
+.dgs-il-f1ce35e630 {
+  --ga-cat: var(--ga-blue) !important;
+}
+
