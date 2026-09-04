@@ -4314,3 +4314,167 @@ a.dgs-btn,
 .dgs-header * {
   font-family: var(--font-body) !important;
 }
+
+/* ════════════════════════════════════════════════════════════════
+   GHL-SAFE ISOLATION LAYER (2026-09-04)
+   Why this exists: almost every rule above this point is scoped
+   under `.dgs-page` on <body> (see line ~211+). GHL owns <body> when
+   our markup is pasted into its page builder / Custom HTML element,
+   so `.dgs-page` never survives the move and every one of those
+   rules stops matching — GHL's own theme (plain `h1{}`, `p{}`, `a{}`,
+   `ul{}` selectors) then wins by default, no specificity fight even
+   needed. This block is a second, independent enforcement layer
+   scoped instead to the three landmarks that DO survive a raw-HTML
+   paste: `.dgs-header` (header, id="navbar"), `.dgs-main-content`
+   (the <main> wrapper — add this class if a page doesn't have it
+   yet) and `.dgs-footer`. It changes nothing on the existing static
+   site (additive, same values `.dgs-page` already sets) and does
+   nothing to content outside those three landmarks, so it can never
+   touch GHL's own native page chrome.
+
+   Every generic-tag rule below is guarded with `:not([class])`, so
+   it only ever touches bare/unstyled tags — every DGS component in
+   this codebase already carries its own class and already defends
+   its own colors/spacing with !important where it matters (see
+   `.dgs-btn-saas--primary` etc.), so this layer can never fight a
+   component. That guard is also exactly what makes `!important` safe
+   to use here: it is aimed only at the bare elements GHL's global
+   theme targets, never at anything DGS already styles on purpose.
+   ════════════════════════════════════════════════════════════════ */
+
+:is(.dgs-header, .dgs-main-content, .dgs-footer) {
+  box-sizing: border-box;
+}
+
+:is(.dgs-header, .dgs-main-content, .dgs-footer) *,
+:is(.dgs-header, .dgs-main-content, .dgs-footer) *::before,
+:is(.dgs-header, .dgs-main-content, .dgs-footer) *::after {
+  box-sizing: border-box;
+}
+
+/* Baseline font family for every bare element, before the more
+   specific heading/body rules below refine weight/size/spacing. */
+:is(.dgs-header, .dgs-main-content, .dgs-footer)
+  :is(h1, h2, h3, h4, h5, h6, p, span, li, a, button, label,
+      blockquote, figcaption, small, strong, b, em, i):not([class]) {
+  font-family: var(--font-body) !important;
+}
+
+:is(.dgs-header, .dgs-main-content, .dgs-footer)
+  :is(input, textarea, select):not([class]) {
+  font-family: var(--font-body) !important;
+  font-size: var(--fs-body) !important;
+  box-sizing: border-box;
+}
+
+:is(.dgs-header, .dgs-main-content, .dgs-footer)
+  :is(h1, h2, h3, h4, h5, h6):not([class]) {
+  font-family: var(--font-heading) !important;
+  font-weight: 800 !important;
+  color: inherit;
+  margin: 0 0 var(--flow) 0 !important;
+  line-height: var(--line-heading) !important;
+  letter-spacing: var(--tracking-tight) !important;
+  text-wrap: balance;
+}
+
+:is(.dgs-header, .dgs-main-content, .dgs-footer) h1:not([class]) {
+  font-size: var(--fs-h1) !important;
+  line-height: var(--line-tight) !important;
+}
+
+:is(.dgs-header, .dgs-main-content, .dgs-footer) h2:not([class]) {
+  font-size: var(--fs-h2) !important;
+}
+
+:is(.dgs-header, .dgs-main-content, .dgs-footer) h3:not([class]) {
+  font-size: var(--fs-h3) !important;
+  letter-spacing: var(--tracking-heading) !important;
+}
+
+:is(.dgs-header, .dgs-main-content, .dgs-footer) h4:not([class]) {
+  font-size: var(--fs-h4) !important;
+  line-height: var(--line-snug) !important;
+  letter-spacing: var(--tracking-heading) !important;
+}
+
+:is(.dgs-header, .dgs-main-content, .dgs-footer) h5:not([class]) {
+  font-weight: 700 !important;
+  font-size: var(--fs-h5) !important;
+  line-height: var(--line-snug) !important;
+  letter-spacing: var(--tracking-heading) !important;
+}
+
+:is(.dgs-header, .dgs-main-content, .dgs-footer) h6:not([class]) {
+  font-weight: 700 !important;
+  font-size: var(--fs-h6) !important;
+  line-height: var(--line-normal) !important;
+  letter-spacing: var(--tracking-normal) !important;
+}
+
+:is(.dgs-header, .dgs-main-content, .dgs-footer) p:not([class]) {
+  margin: 0 0 var(--flow) 0 !important;
+  line-height: var(--line-body) !important;
+  color: inherit;
+}
+
+:is(.dgs-header, .dgs-main-content, .dgs-footer)
+  p:not([class]) + p:not([class]) {
+  margin-top: var(--flow) !important;
+}
+
+:is(.dgs-header, .dgs-main-content, .dgs-footer)
+  :is(strong, b):not([class]) {
+  font-weight: 700 !important;
+}
+
+:is(.dgs-header, .dgs-main-content, .dgs-footer) small:not([class]) {
+  font-size: var(--fs-small) !important;
+  line-height: var(--line-normal) !important;
+}
+
+/* Links: intentionally NOT !important on color/text-decoration —
+   every DGS link component (.dgs-btn-saas, .dgs-promise-link, nav
+   links, etc.) already carries its own class and defends its own
+   color with !important where needed, exactly like the existing
+   `.dgs-page a { color: inherit }` rule this mirrors. The
+   `:not([class])` guard plus the wrapper-class scope is already
+   higher specificity than GHL's plain `a{}`, so no fight is needed. */
+:is(.dgs-header, .dgs-main-content, .dgs-footer) a:not([class]) {
+  color: inherit;
+  text-decoration: none;
+}
+
+:is(.dgs-header, .dgs-main-content, .dgs-footer)
+  a:not([class]):hover,
+:is(.dgs-header, .dgs-main-content, .dgs-footer)
+  a:not([class]):visited {
+  color: inherit;
+}
+
+:is(.dgs-header, .dgs-main-content, .dgs-footer)
+  :is(ul, ol):not([class]) {
+  list-style: none !important;
+  margin: 0 !important;
+  padding: 0 !important;
+}
+
+:is(.dgs-header, .dgs-main-content, .dgs-footer) img:not([class]) {
+  max-width: 100%;
+  display: block;
+}
+
+:is(.dgs-header, .dgs-main-content, .dgs-footer) button:not([class]) {
+  font-family: inherit !important;
+  cursor: pointer;
+}
+
+:is(.dgs-header, .dgs-main-content, .dgs-footer)
+  a:focus-visible:not([class]),
+:is(.dgs-header, .dgs-main-content, .dgs-footer) button:focus-visible,
+:is(.dgs-header, .dgs-main-content, .dgs-footer) input:focus-visible,
+:is(.dgs-header, .dgs-main-content, .dgs-footer) textarea:focus-visible,
+:is(.dgs-header, .dgs-main-content, .dgs-footer) select:focus-visible {
+  outline: 3px solid var(--dgs-amber);
+  outline-offset: 2px;
+}
