@@ -1303,3 +1303,47 @@
   background-image:url('https://assets.cdn.filesafe.space/UAA13luwQZmtw8ObS1Su/media/6a8578d8a3ca30469695eacd.png') !important;
 }
 
+/* ============================================================
+   GHL BLOG WIDGET SCOPE (#learn / #implement / #connect)
+   GoHighLevel's native "Blog Posts" element is dropped in-place inside
+   .dgs-ghl-blog-placeholder and renders its own card markup, whose bare
+   heading tags otherwise inherit the sitewide section-title clamp from
+   dgs-common.css (.dgs-page h2/h3, ~35-51px / ~24-30px, both !important).
+   This file loads after dgs-common.css so equal specificity already wins
+   the cascade; !important is kept anyway because GHL's widget can inject
+   its own <style> tag at runtime (after our linked stylesheets), and that
+   tag may carry !important too. Scale matches the card-title convention
+   used elsewhere on this page (.dgs-resource-title, .dgs-ga-related-card-title).
+   ============================================================ */
+.dgs-ghl-blog-placeholder h1,
+.dgs-ghl-blog-placeholder h2,
+.dgs-ghl-blog-placeholder h3,
+.dgs-ghl-blog-placeholder h4,
+.dgs-ghl-blog-placeholder h5,
+.dgs-ghl-blog-placeholder h6 {
+  font-family: var(--font-heading) !important;
+  font-size: var(--fs-h4) !important;
+  font-weight: 800 !important;
+  line-height: var(--line-heading, 1.2) !important;
+  letter-spacing: -0.01em !important;
+  margin: 0 0 0.75rem !important;
+  color: var(--ga-navy, #0A1F33) !important;
+}
+
+.dgs-ghl-blog-placeholder p {
+  font-size: 0.9rem !important;
+  line-height: 1.6 !important;
+  color: var(--ga-ink, #0A1F33) !important;
+}
+
+.dgs-ghl-blog-placeholder img {
+  max-width: 100% !important;
+  height: auto !important;
+  display: block !important;
+}
+
+.dgs-ghl-blog-placeholder a {
+  color: inherit;
+  text-decoration: none;
+}
+
