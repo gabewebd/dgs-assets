@@ -1363,7 +1363,7 @@
   /* ------------------------------------------------------------
      CLIENT SUCCESS CAROUSEL ("What this looks like in practice.")
      One stat+quote slide visible at a time; prev/next arrows
-     step through the results.
+     step through the results of the carousel.
      ------------------------------------------------------------ */
   document.querySelectorAll('.dgs-case-carousel').forEach(function (carousel) {
     const slides = Array.prototype.slice.call(carousel.querySelectorAll('.dgs-case-carousel-slide'));
@@ -1386,4 +1386,4 @@
     show(index);
   });
 
-})();
+})();
