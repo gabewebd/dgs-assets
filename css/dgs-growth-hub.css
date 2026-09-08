@@ -1304,30 +1304,89 @@
 }
 
 /* ============================================================
-   GHL BLOG WIDGET SCOPE (#learn / #implement / #connect)
-   GoHighLevel's native "Blog Posts" element is dropped in-place inside
-   .dgs-ghl-blog-placeholder and renders its own card markup, whose bare
-   heading tags otherwise inherit the sitewide section-title clamp from
-   dgs-common.css (.dgs-page h2/h3, ~35-51px / ~24-30px, both !important).
-   This file loads after dgs-common.css so equal specificity already wins
-   the cascade; !important is kept anyway because GHL's widget can inject
-   its own <style> tag at runtime (after our linked stylesheets), and that
-   tag may carry !important too. Scale matches the card-title convention
-   used elsewhere on this page (.dgs-resource-title, .dgs-ga-related-card-title).
+   GROWTH HUB FIX 1: NEUTRALIZE .dgs-reveal INSIDE THE GHL WIDGET ZONES
+   main.js's IntersectionObserver drives .dgs-reveal -> .dgs-reveal.is-visible
+   (dgs-common.css: base rule sets opacity:0/visibility:hidden with no
+   !important; is-visible flips it back with !important). That observer only
+   ever sees nodes that exist at its initial querySelectorAll pass, so cards
+   the GHL widget injects into #learn/#implement/#connect AFTER that pass are
+   never observed and never get .is-visible: they paint at opacity:0 (a brief
+   flash of the pre-hydration frame) and then stay invisible for good. Rather
+   than race the widget's own AJAX timing, these three zones are hard-forced
+   visible from frame 1, so .dgs-reveal is fully inert here regardless of
+   whether main.js ever reaches them. Scoped strictly to #learn/#implement/
+   #connect (id selectors, so specificity + !important both beat the base
+   dgs-common.css rule) - no other .dgs-reveal usage on this page or any
+   other page is touched.
    ============================================================ */
+#learn .dgs-reveal,
+#implement .dgs-reveal,
+#connect .dgs-reveal,
+#learn.dgs-reveal,
+#implement.dgs-reveal,
+#connect.dgs-reveal {
+  opacity: 1 !important;
+  visibility: visible !important;
+  transform: none !important;
+  filter: none !important;
+  transition: none !important;
+}
+
+/* ============================================================
+   GROWTH HUB FIX 2: LOCK CARD-LEVEL TITLES INSIDE THE GHL WIDGET ZONES
+   dgs-common.css's .dgs-page h2/h3 clamp rules (~35-51px / ~24-30px, both
+   !important) are meant for section-title-scale headings. GHL's native
+   Blog Posts element renders its own per-card title as a bare h2/h3 (exact
+   class naming varies by widget version/theme, hence the generic
+   [class*="title"] + "h2, h3" catch-alls below), so those inherit the
+   section-title clamp unless something more specific overrides them first.
+   This locks every card-level title inside #learn/#implement/#connect
+   (our own .dgs-ga-related-card-title / .dgs-resource-title / .dgs-conn-title
+   included, so they read identically to whatever the GHL cards render) to
+   the 20-22px card-title band, and leaves EVERY OTHER heading in these
+   sections alone - most importantly .dgs-hub-head h2 ("Practical Resources",
+   "Community"), which keeps its full section-title size since it is never
+   matched by [class*="title"] or a .blog-card/.dgs-ghl-blog-placeholder
+   ancestor. Zero bare "#implement h2"-style selectors are used anywhere in
+   this block for that exact reason.
+   ============================================================ */
+#learn .dgs-ga-related-card-title,
+#implement .dgs-resource-title,
+#connect .dgs-conn-title,
+#learn .blog-card h2,
+#learn .blog-card h3,
+#implement .blog-card h2,
+#implement .blog-card h3,
+#connect .blog-card h2,
+#connect .blog-card h3,
+#learn [class*="title"]:not(.dgs-ghi-featured-title),
+#implement [class*="title"],
+#connect [class*="title"],
 .dgs-ghl-blog-placeholder h1,
 .dgs-ghl-blog-placeholder h2,
 .dgs-ghl-blog-placeholder h3,
 .dgs-ghl-blog-placeholder h4,
 .dgs-ghl-blog-placeholder h5,
-.dgs-ghl-blog-placeholder h6 {
+.dgs-ghl-blog-placeholder h6,
+.dgs-ghl-blog-placeholder [class*="title"] {
   font-family: var(--font-heading) !important;
-  font-size: var(--fs-h4) !important;
+  font-size: clamp(20px, 1.6vw, 22px) !important;
   font-weight: 800 !important;
-  line-height: var(--line-heading, 1.2) !important;
+  line-height: 1.35 !important;
   letter-spacing: -0.01em !important;
   margin: 0 0 0.75rem !important;
   color: var(--ga-navy, #0A1F33) !important;
+}
+
+/* Explicitly re-assert the section headings this page relies on, in case a
+   future GHL theme update ever makes its card wrapper class loose enough to
+   collide with these (defensive; matches current markup either way). */
+#learn > .dgs-container > h2,
+#implement > .dgs-container > h2,
+#connect > .dgs-container > h2,
+.dgs-hub-head h2 {
+  font-size: var(--fs-h2) !important;
+  line-height: var(--line-heading, 1.2) !important;
 }
 
 .dgs-ghl-blog-placeholder p {

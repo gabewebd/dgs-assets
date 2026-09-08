@@ -111,7 +111,7 @@
   font-weight: 700;
   letter-spacing: 0.1em;
   text-transform: uppercase;
-  color: var(--ghi-cat, var(--ghi-teal));
+  color: var(--ghi-cat, var(--ghi-teal)) !important;
 }
 
 .dgs-ghi-featured-title {

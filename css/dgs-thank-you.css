@@ -20,11 +20,11 @@
 }
 
 .dgs-thankyou-ai-note {
-  display: inline-flex;
+  display: flex;
   align-items: center;
-  gap: 0.6rem;
+  width: 100%;
   max-width: 34rem;
-  margin: 0.5rem auto 0;
+  margin: 2.5rem auto 0;
   padding: 0.65rem 1.1rem;
   border: 1px solid rgba(255, 255, 255, 0.14);
   border-left: 2px solid var(--action-teal);
@@ -36,11 +36,11 @@
   text-align: left;
 }
 
-.dgs-thankyou-ai-note svg {
-  width: 18px;
-  height: 18px;
-  flex-shrink: 0;
-  color: var(--action-teal);
+.dgs-thankyou-ai-note span {
+  flex: 1;
+  min-width: 0;
+  width: auto;
+  max-width: none;
 }
 
 @media (max-width: 768px) {
