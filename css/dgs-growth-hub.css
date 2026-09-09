@@ -1318,13 +1318,26 @@
    #connect (id selectors, so specificity + !important both beat the base
    dgs-common.css rule) - no other .dgs-reveal usage on this page or any
    other page is touched.
-   ============================================================ */
+
+   Also covers .dgs-ghl-blog-placeholder itself (with or without a
+   .dgs-reveal class): GHL's Blog Posts element is placed INSIDE that div
+   inside the GHL editor, not as a sibling, so it is the one ancestor a
+   future edit could plausibly tag .dgs-reveal (directly, or by nesting it
+   deeper than the current #learn/#implement/#connect > .dgs-container >
+   .dgs-ghl-blog-placeholder structure). A child widget that finishes
+   rendering later can never make an already-hidden ANCESTOR visible again
+   (opacity:0/visibility:hidden on a parent hides everything inside it
+   regardless of the child's own opacity), so the placeholder is locked
+   visible unconditionally, the same as the reveal elements around it. */
 #learn .dgs-reveal,
 #implement .dgs-reveal,
 #connect .dgs-reveal,
 #learn.dgs-reveal,
 #implement.dgs-reveal,
-#connect.dgs-reveal {
+#connect.dgs-reveal,
+.dgs-ghl-blog-placeholder,
+.dgs-ghl-blog-placeholder.dgs-reveal,
+.dgs-ghl-blog-placeholder .dgs-reveal {
   opacity: 1 !important;
   visibility: visible !important;
   transform: none !important;
@@ -1349,6 +1362,19 @@
    matched by [class*="title"] or a .blog-card/.dgs-ghl-blog-placeholder
    ancestor. Zero bare "#implement h2"-style selectors are used anywhere in
    this block for that exact reason.
+
+   [class*="heading"] / [class*="headline"] added alongside [class*="title"]:
+   the exact class GHL's Blog Posts widget uses is not something this repo
+   can inspect ahead of time (theme/version-dependent, could change on a GHL
+   update), so the catch-all leans on the handful of substrings blog/CMS
+   widgets actually use for a post title in practice, rather than one exact
+   guess. Still scoped to h1-h6 (any class) + these three substrings only,
+   under #learn/#implement/#connect or .dgs-ghl-blog-placeholder - never a
+   bare "#implement h2"/"#implement div" catch-all, so .dgs-hub-head h2 and
+   any unrelated GHL-injected copy stay untouched. If GHL's actual title
+   element uses none of these three words, this rule set will not reach it;
+   that specific case can only be confirmed and fixed by inspecting the
+   generated DOM in an actual GHL preview (see PR/task notes).
    ============================================================ */
 #learn .dgs-ga-related-card-title,
 #implement .dgs-resource-title,
@@ -1362,13 +1388,21 @@
 #learn [class*="title"]:not(.dgs-ghi-featured-title),
 #implement [class*="title"],
 #connect [class*="title"],
+#learn [class*="heading"],
+#implement [class*="heading"],
+#connect [class*="heading"],
+#learn [class*="headline"],
+#implement [class*="headline"],
+#connect [class*="headline"],
 .dgs-ghl-blog-placeholder h1,
 .dgs-ghl-blog-placeholder h2,
 .dgs-ghl-blog-placeholder h3,
 .dgs-ghl-blog-placeholder h4,
 .dgs-ghl-blog-placeholder h5,
 .dgs-ghl-blog-placeholder h6,
-.dgs-ghl-blog-placeholder [class*="title"] {
+.dgs-ghl-blog-placeholder [class*="title"],
+.dgs-ghl-blog-placeholder [class*="heading"],
+.dgs-ghl-blog-placeholder [class*="headline"] {
   font-family: var(--font-heading) !important;
   font-size: clamp(20px, 1.6vw, 22px) !important;
   font-weight: 800 !important;
@@ -1395,10 +1429,25 @@
   color: var(--ga-ink, #0A1F33) !important;
 }
 
+/* opacity:1 here is not cosmetic - it's the actual fix for GHL blog card
+   images "disappearing". dgs-common.css's sitewide "IMAGE LOAD FADE-IN"
+   starts every <img> at opacity:0 and only reveals it once main.js's ONE-TIME
+   querySelectorAll('img:not(.dgs-no-fade)') pass (run once, at page load)
+   attaches a load-listener to it and that listener fires. GHL's Blog Posts
+   widget injects its own <img> tags asynchronously, after that pass already
+   ran, so they never get a listener, never get .dgs-img-loaded, and sit at
+   opacity:0 forever under html.dgs-js img:not(.dgs-img-loaded){opacity:0}
+   (see dgs-common.css). This !important override bypasses that gate
+   entirely for every image inside the placeholder, independent of when GHL
+   inserts it or whether any of our JS runs in time - no MutationObserver
+   race to get right. Trade-off: these images pop in instantly instead of
+   sitewide's soft fade, which is the same trade-off GROWTH HUB FIX 1 above
+   already makes for .dgs-reveal in these same zones, for the same reason. */
 .dgs-ghl-blog-placeholder img {
   max-width: 100% !important;
   height: auto !important;
   display: block !important;
+  opacity: 1 !important;
 }
 
 .dgs-ghl-blog-placeholder a {
