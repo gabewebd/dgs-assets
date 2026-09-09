@@ -1455,3 +1455,22 @@
   text-decoration: none;
 }
 
+/* GROWTH HUB FIX 3: REAL GHL BLOG POST TITLE CLASS
+   Confirmed via live DOM inspection (published page, DevTools computed
+   styles): GHL's Blog Posts widget does NOT render inside
+   .dgs-ghl-blog-placeholder / #learn / #implement / #connect at all - GHL
+   replaces the placeholder with its own top-level page section (a sibling
+   of our <main>, not a descendant), so every rule above this line never
+   matches it. Its title is a real, stable class: <h2 class="blog-title
+   text-xl font-bold text-black font-sans">. Because that <h2> still lives
+   inside <body class="dgs-page">, it inherits dgs-common.css's sitewide
+   .dgs-page h2 page-heading scale (clamp(2.2rem,4.5vw,3.2rem) !important)
+   instead of GHL's own 20px card-title style - that's the actual cause of
+   the title rendering oversized on the published page (confirmed: 35.2px
+   computed, matching that clamp's floor). Fix targets .blog-title directly
+   (specificity (0,2,0), beats .dgs-page h2's (0,1,1)) so the sitewide H2
+   rule itself stays untouched. */
+.dgs-page .blog-title {
+  font-size: clamp(20px, 1.6vw, 22px) !important;
+}
+
