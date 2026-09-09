@@ -10,6 +10,17 @@
 (function () {
   'use strict';
 
+  // GHL-safety gate: dgs-common.css keeps images and .dgs-reveal elements
+  // visible by default and only hides/fades them once this class confirms
+  // main.js actually loaded and executed (see "IMAGE LOAD FADE-IN" and
+  // ".dgs-reveal" in dgs-common.css). Must stay the very first statement in
+  // this IIFE — anything that could throw before this line would leave a
+  // page's images/cards permanently invisible on the old architecture, which
+  // is exactly the failure mode this exists to prevent. If a page (e.g. a
+  // GHL blog template) never loads this script at all, the class is simply
+  // never added and everything stays at its visible default.
+  document.documentElement.classList.add('dgs-js');
+
   // Detect touch capability and add class to html
   if ('ontouchstart' in window || navigator.maxTouchPoints > 0) {
     document.documentElement.classList.add('dgs-is-touch');
@@ -1149,6 +1160,18 @@
         section.classList.add('has-dom-giant-text');
         section.classList.add('dgs-scale-enabled');
 
+        // Force a synchronous layout flush before GSAP reads this element's
+        // size. giantText was just created (or just switched from
+        // display:none to display:block via .dgs-scale-enabled above) in
+        // this same tick, so without this the browser may still report a
+        // 0-width box. GSAP's xPercent/yPercent convert to a pixel offset
+        // by measuring the element's current box — against 0 width that
+        // conversion is 0px, so the "from" state paints with no centering
+        // offset at all (left edge pinned to left:50% instead of centered),
+        // which is what made the giant "SCALE" text appear shoved off to
+        // one side instead of centered on some pages.
+        void giantText.offsetWidth;
+
         const isMobile = window.innerWidth < 768;
         const startScale = isMobile ? 0.55 : 0.7;
         const targetScale = isMobile ? 0.95 : 1.3;
@@ -1363,7 +1386,7 @@
   /* ------------------------------------------------------------
      CLIENT SUCCESS CAROUSEL ("What this looks like in practice.")
      One stat+quote slide visible at a time; prev/next arrows
-     step through the results of the carousel.
+     step through the results.
      ------------------------------------------------------------ */
   document.querySelectorAll('.dgs-case-carousel').forEach(function (carousel) {
     const slides = Array.prototype.slice.call(carousel.querySelectorAll('.dgs-case-carousel-slide'));
