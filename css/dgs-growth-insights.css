@@ -224,6 +224,18 @@
   color: var(--text-dark-muted, #5a6e85);
 }
 
+/* #learn's GHL Blog Posts widget (category: Learn / Thought Leadership) is
+   placed directly in the GHL editor right after this copy - no
+   .dgs-ghl-blog-placeholder wrapper div (matches #implement/#connect in
+   dgs-growth-hub.css). The sitewide 4.5rem margin-bottom above used to have
+   that wrapper to land on; with nothing in between now, it reads as a much
+   bigger gap before the widget starts. (1,1,0) specificity beats both the
+   .dgs-ghi .dgs-ghi-section-intro rule above and .dgs-page p, no !important
+   needed. */
+#learn .dgs-ghi-section-intro {
+  margin-bottom: 1.5rem;
+}
+
 /* ─── DGS Perspective callout (dark navy statement block) ─── */
 .dgs-ghi-perspective {
   margin-top: 4.5rem;

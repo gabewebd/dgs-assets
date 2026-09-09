@@ -1455,21 +1455,27 @@
   text-decoration: none;
 }
 
-/* GROWTH HUB FIX 3: REAL GHL BLOG POST TITLE CLASS
-   Confirmed via live DOM inspection (published page, DevTools computed
-   styles): GHL's Blog Posts widget does NOT render inside
-   .dgs-ghl-blog-placeholder / #learn / #implement / #connect at all - GHL
-   replaces the placeholder with its own top-level page section (a sibling
-   of our <main>, not a descendant), so every rule above this line never
-   matches it. Its title is a real, stable class: <h2 class="blog-title
-   text-xl font-bold text-black font-sans">. Because that <h2> still lives
-   inside <body class="dgs-page">, it inherits dgs-common.css's sitewide
-   .dgs-page h2 page-heading scale (clamp(2.2rem,4.5vw,3.2rem) !important)
-   instead of GHL's own 20px card-title style - that's the actual cause of
-   the title rendering oversized on the published page (confirmed: 35.2px
-   computed, matching that clamp's floor). Fix targets .blog-title directly
-   (specificity (0,2,0), beats .dgs-page h2's (0,1,1)) so the sitewide H2
-   rule itself stays untouched. */
+/* Collapse the placeholder to zero height whenever GHL hasn't put anything
+   into it - this local/static preview (GHL never processes the page), or a
+   live category with zero posts. Without this, the section's own 7rem
+   top+bottom padding (.dgs-hub-section) stacks against the next section's
+   matching padding around a fully empty box, reading as a huge blank gap
+   (e.g. #learn/#implement's placeholder into whatever section follows).
+   :empty only matches when the element truly has no child nodes, so the
+   placeholder markup must not contain whitespace/comments inside it for
+   this to take effect - see the HTML comment on each placeholder <div>.
+   #connect no longer has this wrapper div at all (GHL's Blog Posts widget
+   is placed directly, no placeholder to nest it in), so this rule is now
+   only relevant to #learn/#implement. */
+.dgs-ghl-blog-placeholder:empty {
+  display: none;
+}
+
+#connect .dgs-hub-head,
+#implement .dgs-hub-head {
+  margin-bottom: 1.5rem;
+}
+
 .dgs-page .blog-title {
   font-size: clamp(20px, 1.6vw, 22px) !important;
 }
