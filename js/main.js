@@ -27,13 +27,25 @@
   }
 
   /* ─── IMAGE LOAD FADE-IN (site-wide) ───
-     CSS (dgs-common.css) starts every <img> at opacity:0. Here we add
-     .dgs-img-loaded once each image has actually finished loading (or errored
-     out, so a broken image never stays invisible forever) rather than the
-     instant its bytes arrive. Images that are already cached/complete by the
-     time this script runs (it loads at the end of body) resolve immediately
-     with no visible fade. */
-  Array.prototype.forEach.call(document.querySelectorAll('img:not(.dgs-no-fade)'), function (img) {
+     CSS (dgs-common.css) keeps every <img> at opacity:1 by default and only
+     starts fading new ones from 0 once html.dgs-js is set (see "IMAGE LOAD
+     FADE-IN" there). Here we add .dgs-img-loaded once each image has
+     actually finished loading (or errored out, so a broken image never
+     stays invisible forever) rather than the instant its bytes arrive.
+     Images already cached/complete by the time this runs resolve instantly
+     with no visible fade.
+
+     wireImageFade is reused (not just called once here) because this is a
+     GHL page: widgets like the native Blog Posts element inject their own
+     <img> tags asynchronously, after this initial querySelectorAll pass has
+     already run. An image that never gets wired never gets .dgs-img-loaded,
+     so it would sit at opacity:0 forever under the html.dgs-js rule -
+     exactly the "blog images appear then disappear" symptom. The
+     MutationObserver below (site-wide DOM watcher) calls this same function
+     on every <img> added later, GHL-injected or our own. */
+  const wireImageFade = function (img) {
+    if (!img || img.classList.contains('dgs-no-fade') || img.dataset.dgsFadeWired) return;
+    img.dataset.dgsFadeWired = '1';
     const markLoaded = function () {
       img.classList.add('dgs-img-loaded');
     };
@@ -43,7 +55,8 @@
       img.addEventListener('load', markLoaded, { once: true });
       img.addEventListener('error', markLoaded, { once: true });
     }
-  });
+  };
+  Array.prototype.forEach.call(document.querySelectorAll('img:not(.dgs-no-fade)'), wireImageFade);
 
   /* ─── LENIS SMOOTH SCROLL + GSAP SCROLLTRIGGER INTEGRATION ───
      Smooth scrolling is initialised from ONE place so every page that loads
@@ -498,34 +511,68 @@
   */
   const revealObserverEnabled = ('IntersectionObserver' in window);
 
-  // Primary: elements explicitly marked
-  const revealElements = Array.from(document.querySelectorAll('.dgs-reveal'));
-
-  // Secondary: ensure each page has animated content even if elements don't have .dgs-reveal
-  // Only run this for elements inside .dgs-page so we don't animate unintended UI.
-  // Explicit opt-in for implicit reveal (keeps behavior controlled)
-  // Add `data-animate="true"` or class `dgs-animate` to any element you want animated.
-  const implicitRevealElements = Array.from(
-    document.querySelectorAll('.dgs-page section [data-animate], .dgs-page section .dgs-animate')
-  );
-
-
-  // Combine unique
-  const allAnimateTargets = Array.from(new Set(revealElements.concat(implicitRevealElements)));
+  // Selector shared by the initial pass below AND the MutationObserver
+  // further down, so newly-inserted nodes (GHL widgets, our own async
+  // content) get wired up the exact same way as what was in the DOM at
+  // load. Explicit opt-in for implicit reveal (keeps behavior controlled):
+  // add `data-animate="true"` or class `dgs-animate` to any element you
+  // want animated.
+  const DGS_REVEAL_SELECTOR = '.dgs-reveal, .dgs-page section [data-animate], .dgs-page section .dgs-animate';
 
   const applyReveal = function (el) {
     if (!el) return;
     el.classList.add('is-visible');
   };
 
+  let revealObserver = null;
+  if (revealObserverEnabled && !prefersReducedMotion) {
+    // Reveal ONCE, then stop observing. Premium interfaces let content settle
+    // instead of re-animating every time it scrolls back into view — the old
+    // bidirectional replay read as busy/distracting.
+    revealObserver = new IntersectionObserver(function (entries) {
+      entries.forEach(function (entry) {
+        if (entry.isIntersecting) {
+          entry.target.classList.add('is-visible');
+          revealObserver.unobserve(entry.target);
+        }
+      });
+    }, {
+      threshold: 0.12,
+      rootMargin: '0px 0px -8% 0px'
+    });
+  }
+
+  /* wireRevealTarget is reused (not just called once here) because on a GHL
+     page, content after the native Blog Posts widget can be rebuilt as
+     fresh DOM nodes once GHL finishes processing the page - nodes this
+     initial querySelectorAll pass never saw. A .dgs-reveal element that is
+     never wired never gets .is-visible, so it stays at the html.dgs-js
+     opacity:0 default forever (Inspire cards, the final CTA, later
+     sections). The MutationObserver below calls this same function on
+     every matching node added later, wherever it came from. */
+  const wireRevealTarget = function (el) {
+    if (!el || el.dataset.dgsRevealWired) return;
+    el.dataset.dgsRevealWired = '1';
+    if (revealObserver) {
+      revealObserver.observe(el);
+    } else {
+      // No IntersectionObserver support, or reduced-motion: show immediately.
+      applyReveal(el);
+    }
+  };
+
+  const initialAnimateTargets = Array.from(document.querySelectorAll(DGS_REVEAL_SELECTOR));
+
   // Auto-stagger: when several reveal elements share the same parent (a card
   // grid, a list, a row of buttons) they cascade in sequence rather than all
   // firing at once — the coordinated, "settling" feel of Linear/Stripe.
   // Standalone elements get no delay; the index is capped so large grids never
   // feel slow. The delay itself is applied in CSS via the --dgs-reveal-i var.
+  // Scoped to the initial pass only; late-inserted nodes (see above) still
+  // get revealed correctly, just without the stagger offset.
   if (!prefersReducedMotion) {
     const staggerGroups = new Map();
-    allAnimateTargets.forEach(function (el) {
+    initialAnimateTargets.forEach(function (el) {
       const parent = el.parentElement;
       if (!parent) return;
       if (!staggerGroups.has(parent)) staggerGroups.set(parent, []);
@@ -539,30 +586,50 @@
     });
   }
 
-  if (revealObserverEnabled && allAnimateTargets.length && !prefersReducedMotion) {
-    // Reveal ONCE, then stop observing. Premium interfaces let content settle
-    // instead of re-animating every time it scrolls back into view — the old
-    // bidirectional replay read as busy/distracting.
-    const revealObserver = new IntersectionObserver(function (entries) {
-      entries.forEach(function (entry) {
-        if (entry.isIntersecting) {
-          entry.target.classList.add('is-visible');
-          revealObserver.unobserve(entry.target);
-        }
+  initialAnimateTargets.forEach(wireRevealTarget);
+
+  /* ─── LATE-DOM WATCHER (site-wide) ───
+     Single MutationObserver covering the actual root cause behind "content
+     disappears after GHL processes the page": GHL's native widgets (Blog
+     Posts, etc.) don't just fill a placeholder - they can rebuild a chunk of
+     the live DOM with fresh nodes after this script's initial passes above
+     already ran. Anything - GHL's own markup or ours - that shows up this
+     way was never wired into the image fade-in or scroll-reveal systems,
+     so it would sit permanently at the html.dgs-js opacity:0 default. This
+     watches for added nodes and runs the exact same wiring functions used
+     above on them, whenever they appear. Also nudges GSAP's ScrollTrigger
+     (used by the final CTA / disperse animations) to recompute its
+     trigger positions, since content appearing later can shift page height
+     enough to make earlier-calculated scroll ranges stale, which is a
+     plausible reason a scrub-triggered CTA never reaches opacity:1. */
+  if ('MutationObserver' in window) {
+    let scrollTriggerRefreshTimer = null;
+    const scheduleScrollTriggerRefresh = function () {
+      if (typeof window.ScrollTrigger === 'undefined') return;
+      if (scrollTriggerRefreshTimer) clearTimeout(scrollTriggerRefreshTimer);
+      scrollTriggerRefreshTimer = setTimeout(function () {
+        window.ScrollTrigger.refresh();
+      }, 200);
+    };
+
+    const lateDomObserver = new MutationObserver(function (mutations) {
+      let sawGrowth = false;
+      mutations.forEach(function (mutation) {
+        mutation.addedNodes.forEach(function (node) {
+          if (node.nodeType !== 1) return; // elements only
+          sawGrowth = true;
+
+          if (node.matches('img:not(.dgs-no-fade)')) wireImageFade(node);
+          node.querySelectorAll && node.querySelectorAll('img:not(.dgs-no-fade)').forEach(wireImageFade);
+
+          if (node.matches(DGS_REVEAL_SELECTOR)) wireRevealTarget(node);
+          node.querySelectorAll && node.querySelectorAll(DGS_REVEAL_SELECTOR).forEach(wireRevealTarget);
+        });
       });
-    }, {
-      threshold: 0.12,
-      rootMargin: '0px 0px -8% 0px'
+      if (sawGrowth) scheduleScrollTriggerRefresh();
     });
 
-    allAnimateTargets.forEach(function (el) {
-      revealObserver.observe(el);
-    });
-  } else {
-    // No IntersectionObserver, or reduced-motion: show everything immediately.
-    allAnimateTargets.forEach(function (el) {
-      applyReveal(el);
-    });
+    lateDomObserver.observe(document.body, { childList: true, subtree: true });
   }
 
 
@@ -1407,6 +1474,16 @@
     });
 
     show(index);
+  });
+
+  /* Belt-and-braces alongside the MutationObserver's debounced refresh
+     above: once every subresource (images, fonts, iframes) has actually
+     finished loading, ask ScrollTrigger to recompute its trigger positions
+     one more time, in case page height settled after any of its triggers
+     (final CTA, disperse animation) were first created. Cheap no-op when
+     GSAP/ScrollTrigger never loaded on this page. */
+  window.addEventListener('load', function () {
+    if (window.ScrollTrigger) window.ScrollTrigger.refresh();
   });
 
 })();

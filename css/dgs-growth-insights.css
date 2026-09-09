@@ -260,20 +260,25 @@
   margin: 0 auto;
 }
 
-/* ─── Reveal-on-scroll (progressive enhancement, matches site convention) ─── */
-.dgs-ghi-reveal {
+/* ─── Reveal-on-scroll (progressive enhancement, matches site convention) ───
+   Visible by default, same as the sitewide .dgs-reveal in dgs-common.css:
+   the hidden-until-scrolled-into-view state only activates once
+   html.dgs-js confirms JS actually ran, so this never gets stuck invisible
+   waiting on dgs-growth-insights.js if it's blocked, delayed, or never
+   loads on a page that includes this stylesheet. */
+html.dgs-js .dgs-ghi-reveal {
   opacity: 0;
   transform: translateY(16px);
   transition: opacity 0.6s cubic-bezier(0.16, 1, 0.3, 1), transform 0.6s cubic-bezier(0.16, 1, 0.3, 1);
 }
 
-.dgs-ghi-reveal.is-visible {
+html.dgs-js .dgs-ghi-reveal.is-visible {
   opacity: 1;
   transform: none;
 }
 
 @media (prefers-reduced-motion: reduce) {
-  .dgs-ghi-reveal {
+  html.dgs-js .dgs-ghi-reveal {
     opacity: 1;
     transform: none;
     transition: none;
