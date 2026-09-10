@@ -633,19 +633,31 @@
   position: relative;
   z-index: 1;
   display: flex;
-  flex-wrap: wrap;
-  align-items: flex-start;
-  gap: clamp(2rem, 4vw, 3.5rem);
+  flex-direction: column;
+  align-items: center;
+  text-align: center;
+  gap: clamp(1.5rem, 3vw, 2rem);
 }
 
 .dgs-event-register-text {
-  flex: 1 1 18rem;
-  min-width: 0;
+  width: 100%;
+  max-width: 40rem;
 }
 
 .dgs-event-register-formcol {
-  flex: 1 1 20rem;
-  min-width: 0;
+  width: 100%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+/* The registration form used to fill this column (iframe); now it's just
+   the highlighted "Register Here" link, sized/centered to still read as a
+   deliberate focal point rather than a stray button in empty space. */
+.dgs-event-register-cta {
+  width: 100%;
+  max-width: 20rem;
+  justify-content: center;
 }
 
 /* Compound selectors (.dgs-event-register-card ...) are deliberate here,

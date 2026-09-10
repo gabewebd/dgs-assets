@@ -1354,14 +1354,24 @@
    [class*="title"] + "h2, h3" catch-alls below), so those inherit the
    section-title clamp unless something more specific overrides them first.
    This locks every card-level title inside #learn/#implement/#connect
-   (our own .dgs-ga-related-card-title / .dgs-resource-title / .dgs-conn-title
-   included, so they read identically to whatever the GHL cards render) to
-   the 20-22px card-title band, and leaves EVERY OTHER heading in these
-   sections alone - most importantly .dgs-hub-head h2 ("Practical Resources",
-   "Community"), which keeps its full section-title size since it is never
-   matched by [class*="title"] or a .blog-card/.dgs-ghl-blog-placeholder
-   ancestor. Zero bare "#implement h2"-style selectors are used anywhere in
-   this block for that exact reason.
+   (our own .dgs-ga-related-card-title / .dgs-resource-title included, so
+   they read identically to whatever the GHL cards render) to the 20-22px
+   card-title band, and leaves EVERY OTHER heading in these sections alone
+   - most importantly .dgs-hub-head h2 ("Practical Resources", "Community"),
+   which keeps its full section-title size since it is never matched by
+   [class*="title"] or a .blog-card/.dgs-ghl-blog-placeholder ancestor.
+   Zero bare "#implement h2"-style selectors are used anywhere in this
+   block for that exact reason.
+
+   .dgs-conn-title is deliberately EXCLUDED (#connect [class*="title"]:not
+   (.dgs-conn-title)): unlike the GHL card titles this block targets, which
+   sit on plain white cards, .dgs-conn-title sits on a dark photo (see
+   .dgs-conn-card .dgs-conn-title in this file, color: #ffffff). This
+   block's forced color: var(--ga-navy) !important was overriding that
+   white and making the event card's own title unreadable against its
+   photo background - confirmed live on the "From Operator to Orchestrator"
+   card. .dgs-conn-title already sets its own comparable size/weight, so
+   excluding it here only drops the color override, not the sizing.
 
    [class*="heading"] / [class*="headline"] added alongside [class*="title"]:
    the exact class GHL's Blog Posts widget uses is not something this repo
@@ -1378,7 +1388,6 @@
    ============================================================ */
 #learn .dgs-ga-related-card-title,
 #implement .dgs-resource-title,
-#connect .dgs-conn-title,
 #learn .blog-card h2,
 #learn .blog-card h3,
 #implement .blog-card h2,
@@ -1387,7 +1396,7 @@
 #connect .blog-card h3,
 #learn [class*="title"]:not(.dgs-ghi-featured-title),
 #implement [class*="title"],
-#connect [class*="title"],
+#connect [class*="title"]:not(.dgs-conn-title),
 #learn [class*="heading"],
 #implement [class*="heading"],
 #connect [class*="heading"],
@@ -1471,11 +1480,35 @@
   display: none;
 }
 
+/* #connect/#implement's copy used to sit above a .dgs-ghl-blog-placeholder
+   wrapper that absorbed some of .dgs-hub-head's sitewide 4.5rem
+   margin-bottom visually (the wrapper, empty or not, still gave the eye
+   something to land on). Now that GHL's widget is placed directly with
+   nothing in between (no wrapper div for either section), that margin
+   reads as a much bigger gap before the widget starts. Scoped to these two
+   only - #inspire/#faqs keep the sitewide .dgs-hub-head spacing untouched.
+   #learn's equivalent copy uses a different class (.dgs-ghi-section-intro,
+   not .dgs-hub-head) - see its own override in dgs-growth-insights.css. */
 #connect .dgs-hub-head,
 #implement .dgs-hub-head {
   margin-bottom: 1.5rem;
 }
 
+/* GROWTH HUB FIX 3: REAL GHL BLOG POST TITLE CLASS
+   Confirmed via live DOM inspection (published page, DevTools computed
+   styles): GHL's Blog Posts widget does NOT render inside
+   .dgs-ghl-blog-placeholder / #learn / #implement / #connect at all - GHL
+   replaces the placeholder with its own top-level page section (a sibling
+   of our <main>, not a descendant), so every rule above this line never
+   matches it. Its title is a real, stable class: <h2 class="blog-title
+   text-xl font-bold text-black font-sans">. Because that <h2> still lives
+   inside <body class="dgs-page">, it inherits dgs-common.css's sitewide
+   .dgs-page h2 page-heading scale (clamp(2.2rem,4.5vw,3.2rem) !important)
+   instead of GHL's own 20px card-title style - that's the actual cause of
+   the title rendering oversized on the published page (confirmed: 35.2px
+   computed, matching that clamp's floor). Fix targets .blog-title directly
+   (specificity (0,2,0), beats .dgs-page h2's (0,1,1)) so the sitewide H2
+   rule itself stays untouched. */
 .dgs-page .blog-title {
   font-size: clamp(20px, 1.6vw, 22px) !important;
 }
