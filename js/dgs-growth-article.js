@@ -54,16 +54,25 @@
      invented copy. Guarded the same way as the TOC below: only on a
      GHL post, only once.
 
-     GHL's blog widget is a Nuxt/Vue component that can still be mid-
-     hydration (or re-render for an unrelated reason, e.g. lazy-loaded
-     image swap) after this script's first pass — Vue doesn't know
-     about a node we inserted outside its own virtual DOM, so a later
-     re-render of .blog-html-container-single's children silently drops
-     it (confirmed live: the dek would flash in, then vanish once the
-     page finished rendering). insertDek() is idempotent (no-ops once
-     the dek already exists), so a MutationObserver just re-runs it
-     every time that container's children change, for the life of the
-     page, instead of a single fire-and-forget insert. */
+     GHL's blog widget is a Nuxt/Vue component that server-renders the
+     post markup, then hydrates client-side. Because insertDek() adds a
+     real DOM node inside .blog-html-container-single BEFORE that
+     hydration pass runs, Vue's hydration walk finds a child-list
+     mismatch it can't reconcile in place, and Vue 3's documented
+     recovery is to discard and fully REPLACE that DOM subtree with
+     freshly client-rendered nodes rather than patch it — this can
+     replace .blog-html-container-single itself, not just its children
+     (confirmed live: the dek would flash in, then vanish for good once
+     the page finished rendering — a one-time event, not a flicker).
+     A MutationObserver watching only .blog-html-container-single's own
+     childList is blind to that: if the container node itself gets
+     swapped out, the observer keeps watching the old, now-detached
+     node and never fires again. So instead this observes document.body
+     (guaranteed to survive any such replacement) with subtree:true,
+     and insertDek() re-queries the live DOM fresh every time — it's
+     idempotent (no-ops once the dek already exists), so it just keeps
+     re-asserting the dek for the life of the page no matter how many
+     times GHL rebuilds the subtree underneath it. */
   function insertDek() {
     var ghlHero = document.querySelector('.blog-html-container-single');
     var ghlTitle = ghlHero && ghlHero.querySelector(':scope > .blog-content-title');
@@ -78,7 +87,7 @@
   var ghlHeroEl = document.querySelector('.blog-html-container-single');
   if (ghlHeroEl) {
     insertDek();
-    new MutationObserver(insertDek).observe(ghlHeroEl, { childList: true });
+    new MutationObserver(insertDek).observe(document.body, { childList: true, subtree: true });
   }
 
   /* ─── GHL: build the on-page nav from .dgs-blog-render's headings ───
