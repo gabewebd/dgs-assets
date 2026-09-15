@@ -1096,9 +1096,36 @@ body {
 /* padding-top clears the fixed top nav (.dgs-header) so the hero never
    starts underneath it — 8.5rem desktop / 6.5rem mobile (see "9.
    Responsive" below), well past the header's own ~1.15rem/1rem
-   vertical padding + logo height. */
+   vertical padding + logo height.
+
+   grid-row is set explicitly here (mirroring the desktop-only block
+   above, now applied unconditionally) because mixing an auto-placed
+   item with `.blog-html-container-single::before`'s own EXPLICIT
+   `grid-row: 1 / 7` breaks on mobile: per the CSS Grid spec,
+   explicitly-placed items are positioned before any auto-placed
+   sibling, and auto-placement then skips cells they already occupy.
+   ::before has the lowest `order` (the property's initial value, 0,
+   vs. 1-9 on every real element here) so it's positioned first and
+   claims rows 1-6 outright; every real element in this hero, having
+   only `order` and no explicit `grid-row`, then gets auto-placed
+   AFTER that reserved block, starting at row 7 — not inside it. Since
+   ::before itself has no intrinsic size, rows 1-6 collapse to 0
+   height with nothing "auto" to size them, so the navy backdrop
+   effectively vanishes instead of just sitting empty, while the real
+   text (title, date, description — all styled for white-on-navy)
+   renders on the plain white page background beneath it: invisible,
+   but still taking up its own layout height (confirmed live: category
+   is teal so it stays visible either way, immediately under the
+   header with no gap in front of it, then a "blank" gap exactly the
+   height of the now-invisible white title/date/dek text, then the
+   featured image, which stays visible because pixel content isn't
+   subject to `color`). Desktop never hit this because the min-width:
+   960px block below already gives every element here an explicit
+   `grid-row` of its own — this makes mobile do the same instead of
+   relying on auto-placement at all. */
 .blog-html-container-single > .blog-back-button {
   order: 1;
+  grid-row: 1;
   display: flex !important;
   align-items: center;
   gap: 0.4rem;
@@ -1130,6 +1157,7 @@ body {
 
 .blog-html-container-single > .blog-content-title {
   order: 3;
+  grid-row: 3;
   padding-top: 0 !important;
   padding-bottom: 1.75rem !important;
   margin: 0 !important;
@@ -1144,6 +1172,7 @@ body {
 
 .blog-html-container-single > .meta-section-1:has(.blog-date) {
   order: 4;
+  grid-row: 4;
   padding-top: 1.5rem !important;
   padding-bottom: 1.1rem !important;
   border-top: 1px solid rgba(255, 255, 255, 0.14);
@@ -1165,15 +1194,22 @@ body {
    (desktop). */
 .blog-html-container-single > .dgs-ga-dek {
   order: 5;
+  grid-row: 5;
   padding-bottom: 2.75rem !important;
 }
 
 /* Featured image: order:6 on mobile (after the text stack, matching
    the static reference's own text-before-image reading order), grid
    column 2 / rows 1-5 on desktop (see the 2-column block above) —
-   a real GHL element, not JS-moved. */
+   a real GHL element, not JS-moved. grid-row:6 (not just order) for
+   the same reason every other hero element above now sets grid-row:
+   without it, the image is auto-placed and gets skipped past the
+   block .blog-html-container-single::before already claims via its
+   own explicit `grid-row: 1 / 7`, landing outside the navy backdrop
+   entirely instead of as its last row. */
 .blog-html-container-single > .blog-cover-image-container {
   order: 6;
+  grid-row: 6;
   max-width: 100%;
   margin: 0 auto 3rem !important;
   padding: 0 1rem;
@@ -1208,6 +1244,7 @@ body {
 --------------------------------------------------------- */
 .blog-html-container-single > .meta-section-1:has(.blog-category) {
   order: 2;
+  grid-row: 2;
   padding-top: 0 !important;
   padding-bottom: 1.1rem !important;
 }
