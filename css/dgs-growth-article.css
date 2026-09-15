@@ -904,3 +904,416 @@
   --ga-cat: var(--ga-blue) !important;
 }
 
+/* ============================================================
+   DGS BLOG POST TEMPLATE
+   Native GHL Integration
+
+   Makes the native GHL "Blog Content" widget (the dynamic post
+   detail element that outputs .blog-content-title / .blog-category /
+   .blog-date / .blog-cover-image-container / .blog-html) visually match
+   the static Growth Hub article reference (.dgs-ga-hero / .dgs-ga-cat /
+   .dgs-ga-title / .dgs-ga-meta / .dgs-ga-cover above). Every selector
+   below is a stable GHL blog-theme class — never the per-widget random-
+   hash id (e.g. #blog-content-fBpiT2lwHw) — so this ships once here and
+   applies to every post automatically, no per-post GHL config needed.
+   The reorder (image-then-title in the native DOM -> back-link /
+   category / title / date / description / image / content) is done
+   with CSS Grid `order` on the real elements (all direct children of
+   .blog-html-container-single) — see "2. Native GHL Blog Hero" below
+   for why the navy background is one `::before` grid item rather than
+   a background on each element. One piece of that hero doesn't exist
+   as a real element GHL renders — the description paragraph under the
+   date — so js/dgs-growth-article.js creates a real `.dgs-ga-dek`
+   element (reusing that exact class from the static template above)
+   from the post's own `<meta name="description">` and inserts it as
+   a further direct child here.
+========================================================= */
+
+/* The hero's `::before` (in "2. Native GHL Blog Hero" below) breaks out
+   to `width: 100vw` so it stays full-bleed on every post automatically,
+   with no per-post dependency on GHL's own "Section Width: Full Width"
+   builder toggle (see the header comment above). `100vw` includes the
+   browser's vertical scrollbar gutter, so without this it creates a
+   page-level horizontal scrollbar on any OS/browser with a reserved
+   (non-overlay) scrollbar. `.blog-html-container-single` itself must
+   stay `overflow: visible` (set in "1. Template scope" below) or the
+   breakout gets clipped right back — so the overflow has to be caught
+   here, at the actual viewport scroll container, instead. This is the
+   one deliberate exception to this file's own bare-tag scoping rule
+   (see "1. Template scope" below): it's unavoidable because
+   `html`/`body` is the only element that can mask `100vw` overflow
+   without also clipping the breakout that depends on it. */
+html,
+body {
+  overflow-x: hidden;
+}
+
+/* ---------------------------------------------------------
+   1. Template scope
+   Every rule below is scoped under .blog-html-container-single,
+   the stable wrapper GHL's blog-theme always renders around a Blog
+   Content widget's output. Nothing here touches a bare tag/id or any
+   selector that could match outside that widget.
+--------------------------------------------------------- */
+.blog-html-container-single {
+  display: grid !important;
+  grid-template-columns: 1fr;
+  background: #ffffff !important;
+  padding: 0 !important;
+  border: none !important;
+  box-shadow: none !important;
+  /* GHL's OWN default theme CSS (not ours) ships
+     `.blog-html-container-single { margin: 0 auto; max-width: 800px;
+     overflow: hidden }`. Left alone, that squeezes the whole widget
+     into an 800px centered column (exposing the sitewide navy
+     `body.dgs-page` background on both sides for the widget's full
+     height — the "navy page / white body" split) AND clips the hero's
+     `::before` full-bleed backdrop below, since an ancestor with
+     `overflow: hidden` clips escaping descendants regardless of their
+     own position/transform. All three must be beaten here, not just
+     the child rules. (GHL also exposes a `.blog-content-fluid-width`
+     class that sets max-width:100% on this same selector — an
+     equivalent native "Fluid Width" widget toggle, if one exists in
+     the page builder, is a fine alternative to this.) */
+max-width: 100% !important;
+  margin: 0 !important;
+  overflow: visible !important;
+}
+
+/* ---------------------------------------------------------
+   2. Native GHL Blog Hero
+   Native render order is: image, title, category, date, content.
+   Target order (explicit per-post requirement, not the static
+   template's — the static .dgs-ga-hero has no image in it at all,
+   .dgs-ga-cover sits below/overlapping the hero instead): back-link,
+   featured image, title, category, date, description, then the white
+   article body. This MUST stay single-column at every breakpoint —
+   no grid-template-columns split, no image-beside-text. `order` moves
+   the real elements with zero DOM changes; js/dgs-growth-article.js
+   additionally inserts the description as a new direct-child element
+   (see the header comment above) for `order` to place the same way.
+
+   The navy hero background is a single `::before` grid item (below)
+   rather than each element carrying its own background: it spans
+   exactly the hero's rows (auto-sized to their content height, no
+   guessed number) while only its own width bleeds to the viewport
+   edge via the standard `calc(50% - 50vw)` margin technique. */
+.blog-html-container-single::before {
+content: '';
+grid-column: 1 / -1;
+grid-row: 1 / 7;
+width: 100vw;
+margin-left: calc(50% - 50vw);
+margin-right: calc(50% - 50vw);
+overflow: hidden;
+  /* Same glow as .dgs-ga-hero::before (upper-center radial fade, same
+     teal/blue stops) — layered on top of the solid navy in this one
+     background instead of a second pseudo-element, since ::after would
+     paint above the real hero content instead of behind it. */
+background: radial-gradient(circle at 50% 0%, rgba(0, 179, 159, 0.18) 0%, rgba(45, 127, 249, 0.08) 45%, transparent 75%),
+    var(--ga-navy, #0A1F33);
+}
+
+.blog-html-container-single > .blog-back-button,
+.blog-html-container-single > .meta-section-1:has(.blog-category),
+.blog-html-container-single > .blog-content-title,
+.blog-html-container-single > .meta-section-1:has(.blog-date),
+.blog-html-container-single > .dgs-ga-dek {
+box-sizing: border-box;
+padding-left: 1rem;
+padding-right: 1rem;
+}
+
+@media (min-width: 768px) {
+.blog-html-container-single > .blog-back-button,
+  .blog-html-container-single > .meta-section-1:has(.blog-category),
+  .blog-html-container-single > .blog-content-title,
+  .blog-html-container-single > .meta-section-1:has(.blog-date),
+  .blog-html-container-single > .dgs-ga-dek {
+    padding-left: 2rem;
+    padding-right: 2rem;
+}
+}
+
+@media (min-width: 1024px) {
+    .blog-html-container-single > .blog-back-button,
+  .blog-html-container-single > .meta-section-1:has(.blog-category),
+  .blog-html-container-single > .blog-content-title,
+  .blog-html-container-single > .meta-section-1:has(.blog-date),
+  .blog-html-container-single > .dgs-ga-dek {
+        padding-left: 3.5rem;
+        padding-right: 3.5rem;
+    }
+}
+
+.blog-html-container-single > .blog-back-button {
+    order: 1;
+    display: flex !important;
+    align-items: center;
+    gap: 0.4rem;
+    padding-top: 8.5rem !important;
+    padding-bottom: 2rem !important;
+    font-family: var(--font-body) !important;
+    font-size: 0.88rem !important;
+    font-weight: 600 !important;
+    color: rgba(255, 255, 255, 0.65) !important;
+    text-decoration: none !important;
+    margin-top: 0 !important;
+    cursor: pointer;
+}
+
+.blog-html-container-single > .blog-back-button:hover {
+    color: var(--ga-teal, #00B39F) !important;
+}
+
+/* GHL's default back-arrow renders blank without Font Awesome loaded;
+   swap it for a plain arrow glyph instead of pulling in an icon font. */
+.blog-html-container-single > .blog-back-button .blog-left-arrow {
+  margin-right: 0.3rem !important;
+}
+
+.blog-html-container-single > .blog-back-button .blog-left-arrow::before {
+  content: "\2190" !important;
+  font-family: var(--font-body) !important;
+}
+
+.blog-html-container-single > .blog-content-title {
+  order: 3;
+  padding-top: 0 !important;
+  padding-bottom: 1.75rem !important;
+  margin: 0 !important;
+  font-family: var(--font-heading) !important;
+  font-weight: 800 !important;
+  font-size: clamp(2rem, 4.2vw, 3.1rem) !important;
+  line-height: 1.15 !important;
+  letter-spacing: -0.02em !important;
+  text-transform: none !important;
+  color: #ffffff !important;
+}
+
+.blog-html-container-single > .meta-section-1:has(.blog-date) {
+  order: 5;
+  padding-top: 0 !important;
+  padding-bottom: 1.1rem !important;
+}
+
+.blog-html-container-single .blog-date {
+  font-family: var(--font-body) !important;
+  font-size: 0.88rem !important;
+  font-weight: 400 !important;
+  color: rgba(255, 255, 255, 0.62) !important;
+}
+
+/* Description: a real element js/dgs-growth-article.js inserts as a
+   further direct child (see the header comment above) — reusing
+   .dgs-ga-dek as-is from the static template system. order:6 puts it
+   last in the text stack, right after the date; padding-bottom stands
+   in for .dgs-ga-hero's own padding-bottom (this hero has none) to
+   close the hero out. */
+.blog-html-container-single > .dgs-ga-dek {
+    order: 6;
+    padding-bottom: 2.75rem !important;
+}
+
+/* Featured image: order:2, directly below "Back to Blog" and above
+   the title, per the explicit hero order above — a real GHL element,
+   not JS-moved. Sits inside the navy hero band (spanned by ::before
+   below), so it gets normal top/bottom spacing rather than the static
+   template's .dgs-ga-cover negative-margin overlap (that trick is for
+   an image straddling the navy/white seam; this image never reaches
+   that seam). */
+.blog-html-container-single > .blog-cover-image-container {
+  order: 2;
+  max-width: 100%;
+  margin: 0 auto 2.5rem !important;
+  padding: 0 1rem;
+}
+
+@media (min-width: 768px) {
+  .blog-html-container-single > .blog-cover-image-container {
+    padding: 0 2rem;
+  }
+}
+
+@media (min-width: 1024px) {
+  .blog-html-container-single > .blog-cover-image-container {
+    padding: 0 3.5rem;
+  }
+}
+
+/* ---------------------------------------------------------
+   3. Native GHL Metadata
+--------------------------------------------------------- */
+.blog-html-container-single > .meta-section-1:has(.blog-category) {
+  order: 4;
+  padding-top: 0 !important;
+  padding-bottom: 1.1rem !important;
+}
+
+.blog-html-container-single .blog-category,
+.blog-html-container-single .blog-category a {
+  display: inline-block;
+  font-family: var(--font-body) !important;
+  font-size: 0.78rem !important;
+  font-weight: 700 !important;
+  letter-spacing: 0.14em !important;
+  text-transform: uppercase !important;
+  color: var(--ga-teal, #00B39F) !important;
+  text-decoration: none !important;
+}
+
+/* ---------------------------------------------------------
+   4. Featured image
+--------------------------------------------------------- */
+.blog-html-container-single .hl-image-picture {
+  display: block !important;
+}
+
+.blog-html-container-single .blog-content-blog-image {
+  width: 100% !important;
+  aspect-ratio: 16 / 8.5;
+  object-fit: cover !important;
+  border-radius: var(--radius-lg, 14px) !important;
+  display: block;
+  box-shadow: 0 24px 60px rgba(10, 31, 51, 0.18);
+}
+
+/* ---------------------------------------------------------
+   5. Article content
+   #blogPostContent is a fixed GHL id (not a per-widget random hash),
+   safe to use directly per GHL's own docs.
+--------------------------------------------------------- */
+.blog-html-container-single > .blog-html {
+    order: 7;
+    background: #ffffff !important;
+    max-width: 100%;
+    margin: 0 auto !important;
+    padding: 4.5rem 1rem 2rem !important;
+}
+
+@media (min-width: 768px) {
+    .blog-html-container-single > .blog-html {
+        padding: 4.5rem 2rem 2rem !important;
+    }
+}
+
+@media (min-width: 1024px) {
+    .blog-html-container-single > .blog-html {
+        padding: 4.5rem 3.5rem 2rem !important;
+    }
+}
+
+/* js/dgs-growth-article.js scans .dgs-blog-render's h2 headings on load
+   and, when there are any, inserts a .dgs-ga-toc sidebar (the same
+   component the static article template hand-authors) as a sibling
+   right before .dgs-blog-render, inside this same #blogPostContent.
+   The :has() guard switches this wrapper to the 2-column layout only
+   once that sidebar actually exists, so a post with no h2s (or the
+   instant before the script runs) stays exactly as it is above:
+   .dgs-blog-render alone, single centered column, untouched. */
+.blog-html-container-single > .blog-html:has(.dgs-ga-toc) {
+  display: grid;
+  grid-template-columns: 1fr;
+  gap: 3rem;
+}
+
+@media (min-width: 960px) {
+  .blog-html-container-single > .blog-html:has(.dgs-ga-toc) {
+    grid-template-columns: 240px 1fr;
+    gap: 4.5rem;
+    align-items: start;
+  }
+}
+
+/* Fallback typography for article HTML pasted WITHOUT its own
+   .dgs-blog-render wrapper/styles. #blogPostContent is an ID, which
+   would outrank .dgs-blog-render's own (non-!important) max-width/
+   margin, so the :not(:has(...)) guard is required, not decorative:
+   it keeps this fallback OFF entirely on any post that already ships
+   .dgs-blog-render, so existing per-post styling is never touched. */
+#blogPostContent:not(:has(.dgs-blog-render)) {
+    font-family: var(--font-body);
+    color: var(--ga-ink, #0A1F33);
+    max-width: 76ch;
+    margin: 0 auto;
+}
+
+#blogPostContent:not(:has(.dgs-blog-render)) > p {
+    font-size: 1.1rem;
+    line-height: 1.85;
+    color: #2A3B4D;
+}
+
+#blogPostContent:not(:has(.dgs-blog-render)) > h2 {
+    font-family: var(--font-heading);
+    font-weight: 800;
+    font-size: clamp(1.8rem, 3.2vw, 2.4rem);
+    color: var(--ga-navy, #0A1F33);
+}
+
+/* ---------------------------------------------------------
+   6. Native GHL overrides
+--------------------------------------------------------- */
+.blog-html-container-single > .blog-tags {
+    order: 8;
+    max-width: 860px;
+    margin: 0 auto !important;
+    padding: 0 1rem 1rem !important;
+}
+
+.blog-html-container-single > .blog-tags:empty {
+    display: none !important;
+}
+
+.blog-html-container-single > .hl-blog-content-back-to-top-container {
+    order: 9;
+    max-width: 860px;
+    margin: 0 auto 3rem !important;
+    padding: 0 1rem !important;
+    text-align: center;
+    background: transparent !important;
+}
+
+.blog-html-container-single > .hl-blog-content-back-to-top-container .back-to-top {
+    background: transparent !important;
+    color: var(--ga-teal, #00B39F) !important;
+    font-family: var(--font-body) !important;
+    font-weight: 600 !important;
+    font-size: 0.9rem !important;
+    border: none !important;
+    border-radius: 0 !important;
+    cursor: pointer;
+}
+
+/* ---------------------------------------------------------
+   7. More Perspectives
+   Reuses .dgs-ga-related as-is (see section 509+ above) from the
+   Custom Code section placed directly after the Blog Content widget
+   in the page builder — nothing to add here.
+--------------------------------------------------------- */
+
+/* ---------------------------------------------------------
+   8. Final CTA
+   Reuses .dgs-sol-final-cta as-is (see section 694+ above) from the
+   Custom Code section placed after "More Perspectives" in the page
+   builder — nothing to add here.
+--------------------------------------------------------- */
+
+/* ---------------------------------------------------------
+   9. Responsive
+--------------------------------------------------------- */
+@media (max-width: 767px) {
+    .blog-html-container-single > .blog-back-button {
+        padding-top: 6.5rem !important;
+        padding-bottom: 1.5rem !important;
+    }
+
+    .blog-html-container-single > .blog-cover-image-container {
+        margin-bottom: 1.75rem !important;
+    }
+
+    .blog-html-container-single .blog-content-blog-image {
+        border-radius: var(--radius-md, 10px) !important;
+    }
+}
+
