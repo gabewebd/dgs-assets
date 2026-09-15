@@ -1244,7 +1244,6 @@ body {
 --------------------------------------------------------- */
 .blog-html-container-single > .meta-section-1:has(.blog-category) {
   order: 2;
-  grid-row: 2;
   padding-top: 0 !important;
   padding-bottom: 1.1rem !important;
 }
@@ -1428,4 +1427,3 @@ body {
     border-radius: var(--radius-md, 10px) !important;
   }
 }
-
