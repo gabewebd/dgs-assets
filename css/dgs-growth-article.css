@@ -916,13 +916,17 @@
    below is a stable GHL blog-theme class — never the per-widget random-
    hash id (e.g. #blog-content-fBpiT2lwHw) — so this ships once here and
    applies to every post automatically, no per-post GHL config needed.
-   No JS required: the whole reorder (image-then-title in the native
-   DOM -> back-link/category/title/date in a left column, the featured
-   image large in a right column, both inside one navy hero) is done
-   with CSS Grid `order`/`grid-row`/`grid-column` on the real elements
-   (all direct children of .blog-html-container-single) — see "2.
-   Native GHL Blog Hero" below for why the navy background is one
-   `::before` grid item rather than a background on each element.
+   The reorder (image-then-title in the native DOM -> back-link /
+   category / title / date / description / image / content) is done
+   with CSS Grid `order` on the real elements (all direct children of
+   .blog-html-container-single) — see "2. Native GHL Blog Hero" below
+   for why the navy background is one `::before` grid item rather than
+   a background on each element. One piece of that hero doesn't exist
+   as a real element GHL renders — the description paragraph under the
+   date — so js/dgs-growth-article.js creates a real `.dgs-ga-dek`
+   element (reusing that exact class from the static template above)
+   from the post's own `<meta name="description">` and inserts it as
+   a further direct child here.
 ========================================================= */
 
 /* The hero's `::before` (in "2. Native GHL Blog Hero" below) breaks out
@@ -979,31 +983,23 @@ body {
 /* ---------------------------------------------------------
    2. Native GHL Blog Hero
    Native render order is: image, title, category, date, content.
-   Target order (matching growth-hub/connect/*, the site's existing
-   "text left, cover photo right, inside the navy hero" event-page
-   pattern — see css/dgs-event-detail.css .dgs-event-hero-grid) is:
-   back-link/category/title/date stacked in a left column, the featured
-   image as a large column on the right, both sharing one navy hero
-   band. `order` moves the real elements (image included) with zero DOM
-   changes on mobile, where it's one stacked column; at 960px a grid
-   with named rows places the four text rows into column 1 and the
-   image into column 2, spanning them.
+   Target order, matching .dgs-ga-hero: back-link, category, title,
+   date, description, then the image full-width below the hero (with
+   the same overlap .dgs-ga-cover uses), then the white article body.
+   `order` moves the real elements with zero DOM changes;
+   js/dgs-growth-article.js additionally inserts the description as a
+   new direct-child element (see the header comment above) for `order`
+   to place the same way.
 
-   The navy hero background is a single `::before` (below), not a
-   background on each of these elements: with two columns, the old
-   "4 siblings each break out to width:100vw" approach (still valid
-   for the single-column top nav bar elsewhere on the site) would make
-   every one of these elements bleed to full viewport width and
-   overlap the image column instead of respecting its own grid track.
-   A `::before` placed as a grid item spans exactly the hero's rows
-   (auto-sized to their content height, no guessed number) while only
-   its own width bleeds to the viewport edge via the standard
-   `calc(50% - 50vw)` margin technique — content elements below stay
-   normal, non-breakout grid items sized to their column. */
+   The navy hero background is a single `::before` grid item (below)
+   rather than each element carrying its own background: it spans
+   exactly the hero's rows (auto-sized to their content height, no
+   guessed number) while only its own width bleeds to the viewport
+   edge via the standard `calc(50% - 50vw)` margin technique. */
 .blog-html-container-single::before {
   content: '';
   grid-column: 1 / -1;
-  grid-row: 1 / 6;
+  grid-row: 1 / 7;
   width: 100vw;
   margin-left: calc(50% - 50vw);
   margin-right: calc(50% - 50vw);
@@ -1017,16 +1013,11 @@ body {
     var(--ga-navy, #0A1F33);
 }
 
-@media (min-width: 960px) {
-  .blog-html-container-single::before {
-    grid-row: 1 / 5;
-  }
-}
-
 .blog-html-container-single > .blog-back-button,
 .blog-html-container-single > .meta-section-1:has(.blog-category),
 .blog-html-container-single > .blog-content-title,
-.blog-html-container-single > .meta-section-1:has(.blog-date) {
+.blog-html-container-single > .meta-section-1:has(.blog-date),
+.blog-html-container-single > .dgs-ga-dek {
   box-sizing: border-box;
   padding-left: 1rem;
   padding-right: 1rem;
@@ -1036,7 +1027,8 @@ body {
   .blog-html-container-single > .blog-back-button,
   .blog-html-container-single > .meta-section-1:has(.blog-category),
   .blog-html-container-single > .blog-content-title,
-  .blog-html-container-single > .meta-section-1:has(.blog-date) {
+  .blog-html-container-single > .meta-section-1:has(.blog-date),
+  .blog-html-container-single > .dgs-ga-dek {
     padding-left: 2rem;
     padding-right: 2rem;
   }
@@ -1046,40 +1038,10 @@ body {
   .blog-html-container-single > .blog-back-button,
   .blog-html-container-single > .meta-section-1:has(.blog-category),
   .blog-html-container-single > .blog-content-title,
-  .blog-html-container-single > .meta-section-1:has(.blog-date) {
+  .blog-html-container-single > .meta-section-1:has(.blog-date),
+  .blog-html-container-single > .dgs-ga-dek {
     padding-left: 3.5rem;
     padding-right: 3.5rem;
-  }
-}
-
-/* Desktop 2-column hero: text in column 1 (rows 1-4), image in column
-   2 spanning the same 4 rows (grid-row set on
-   .blog-cover-image-container below). column-gap replaces these
-   elements' own right-hand gutter, so it isn't doubled at the seam
-   between the two columns. */
-@media (min-width: 960px) {
-  .blog-html-container-single {
-    grid-template-columns: 1.05fr 0.95fr;
-    column-gap: 4rem;
-  }
-
-  .blog-html-container-single > .blog-back-button,
-  .blog-html-container-single > .meta-section-1:has(.blog-category),
-  .blog-html-container-single > .blog-content-title,
-  .blog-html-container-single > .meta-section-1:has(.blog-date) {
-    grid-column: 1;
-    padding-right: 0;
-  }
-
-  .blog-html-container-single > .blog-back-button { grid-row: 1; }
-  .blog-html-container-single > .meta-section-1:has(.blog-category) { grid-row: 2; }
-  .blog-html-container-single > .blog-content-title { grid-row: 3; }
-  .blog-html-container-single > .meta-section-1:has(.blog-date) { grid-row: 4; }
-
-  .blog-html-container-single > .blog-html,
-  .blog-html-container-single > .blog-tags,
-  .blog-html-container-single > .hl-blog-content-back-to-top-container {
-    grid-column: 1 / -1;
   }
 }
 
@@ -1128,35 +1090,47 @@ body {
   color: #ffffff !important;
 }
 
-.blog-html-container-single > .blog-cover-image-container {
+.blog-html-container-single > .meta-section-1:has(.blog-date) {
+  order: 4;
+  padding-top: 0 !important;
+  padding-bottom: 1.1rem !important;
+}
+
+.blog-html-container-single .blog-date {
+  font-family: var(--font-body) !important;
+  font-size: 0.88rem !important;
+  font-weight: 400 !important;
+  color: rgba(255, 255, 255, 0.62) !important;
+}
+
+/* Description: a real element js/dgs-growth-article.js inserts as a
+   further direct child (see the header comment above) — reusing
+   .dgs-ga-dek as-is from the static template system. order:5 puts it
+   right after the date; padding-bottom stands in for .dgs-ga-hero's
+   own padding-bottom (this hero has none) to close the hero out. */
+.blog-html-container-single > .dgs-ga-dek {
   order: 5;
+  padding-bottom: 2.75rem !important;
+}
+
+.blog-html-container-single > .blog-cover-image-container {
+  order: 6;
   max-width: 100%;
-  margin: 2.5rem auto 0;
-  padding: 0 1rem 3rem;
+  margin: -2rem auto 0 !important;
+  padding: 0 1rem;
+  position: relative;
+  z-index: 1;
 }
 
 @media (min-width: 768px) {
   .blog-html-container-single > .blog-cover-image-container {
-    padding: 0 2rem 3rem;
+    padding: 0 2rem;
   }
 }
 
 @media (min-width: 1024px) {
   .blog-html-container-single > .blog-cover-image-container {
-    padding: 0 3.5rem 3rem;
-  }
-}
-
-/* Desktop: right-hand hero column instead of a stacked row below the
-   text — spans the same 4 rows column 1's text occupies (see "2.
-   Native GHL Blog Hero" above), vertically centered against them. */
-@media (min-width: 960px) {
-  .blog-html-container-single > .blog-cover-image-container {
-    grid-column: 2;
-    grid-row: 1 / 5;
-    align-self: center;
-    margin: 0;
-    padding: 0 3.5rem 0 0;
+    padding: 0 3.5rem;
   }
 }
 
@@ -1181,22 +1155,6 @@ body {
   text-decoration: none !important;
 }
 
-.blog-html-container-single > .meta-section-1:has(.blog-date) {
-  order: 4;
-  display: flex;
-  align-items: center;
-  padding-top: 1.5rem !important;
-  padding-bottom: 2.75rem !important;
-  border-top: 1px solid rgba(255, 255, 255, 0.12);
-}
-
-.blog-html-container-single .blog-date {
-  font-family: var(--font-body) !important;
-  font-size: 0.88rem !important;
-  font-weight: 400 !important;
-  color: rgba(255, 255, 255, 0.62) !important;
-}
-
 /* ---------------------------------------------------------
    4. Featured image
 --------------------------------------------------------- */
@@ -1213,28 +1171,13 @@ body {
   box-shadow: 0 24px 60px rgba(10, 31, 51, 0.18);
 }
 
-/* Desktop: natural aspect ratio instead of the mobile banner crop
-   (matches .dgs-event-hero-cover img — a large hero-column image reads
-   better at its own proportions than forced into a wide/short crop),
-   and a translucent white border instead of a shadow, since it now
-   sits directly on the navy hero rather than overlapping onto white. */
-@media (min-width: 960px) {
-  .blog-html-container-single .blog-content-blog-image {
-    aspect-ratio: auto;
-    height: auto;
-    border-radius: var(--radius-xl, 10px) !important;
-    box-shadow: none;
-    border: 1px solid rgba(255, 255, 255, 0.14);
-  }
-}
-
 /* ---------------------------------------------------------
    5. Article content
    #blogPostContent is a fixed GHL id (not a per-widget random hash),
    safe to use directly per GHL's own docs.
 --------------------------------------------------------- */
 .blog-html-container-single > .blog-html {
-  order: 6;
+  order: 7;
   background: #ffffff !important;
   max-width: 100%;
   margin: 0 auto !important;
@@ -1305,7 +1248,7 @@ body {
    6. Native GHL overrides
 --------------------------------------------------------- */
 .blog-html-container-single > .blog-tags {
-  order: 7;
+  order: 8;
   max-width: 860px;
   margin: 0 auto !important;
   padding: 0 1rem 1rem !important;
@@ -1316,7 +1259,7 @@ body {
 }
 
 .blog-html-container-single > .hl-blog-content-back-to-top-container {
-  order: 8;
+  order: 9;
   max-width: 860px;
   margin: 0 auto 3rem !important;
   padding: 0 1rem !important;
@@ -1358,9 +1301,8 @@ body {
     padding-bottom: 1.5rem !important;
   }
 
-  .blog-html-container-single > .meta-section-1:has(.blog-date) {
-    flex-wrap: wrap;
-    padding-bottom: 2rem !important;
+  .blog-html-container-single > .blog-cover-image-container {
+    margin-top: -1.25rem !important;
   }
 
   .blog-html-container-single .blog-content-blog-image {
