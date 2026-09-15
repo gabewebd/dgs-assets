@@ -911,42 +911,33 @@
    Makes the native GHL "Blog Content" widget (the dynamic post
    detail element that outputs .blog-content-title / .blog-category /
    .blog-date / .blog-cover-image-container / .blog-html) visually match
-   the static Growth Hub article reference (.dgs-ga-hero / .dgs-ga-cat /
-   .dgs-ga-title / .dgs-ga-meta / .dgs-ga-cover above). Every selector
-   below is a stable GHL blog-theme class — never the per-widget random-
-   hash id (e.g. #blog-content-fBpiT2lwHw) — so this ships once here and
-   applies to every post automatically, no per-post GHL config needed.
-   The reorder (image-then-title in the native DOM -> back-link /
-   category / title / dek / byline / image / content, matching
-   .dgs-ga-hero) is done with CSS Grid `order` on the real elements
-   (all direct children of .blog-html-container-single) — see "2.
-   Native GHL Blog Hero" below for why the navy background is one
-   `::before` grid item rather than a background on each element.
-   Two pieces of that target hero don't exist as real elements GHL
-   renders — a dek/description paragraph, and a "By [author] · [n min
-   read]" byline — so js/dgs-growth-article.js creates real
-   `.dgs-ga-dek` / `.dgs-ga-meta` elements (reusing those exact classes
-   from the static template above) from the post's own
-   `<meta name="description">` and its own word count, and inserts
-   them as further direct children here. GHL's native `.blog-date`
-   element has no equivalent in the target hero (.dgs-ga-hero shows no
-   date), so it's hidden rather than removed.
-========================================================= */
+   the site's existing "text left, cover photo right, inside the navy
+   hero" event-page pattern (growth-hub/connect/*, see
+   .dgs-event-hero-grid / .dgs-event-hero-cover in
+   css/dgs-event-detail.css) rather than the image-less static article
+   hero. Every selector below is a stable GHL blog-theme class — never
+   the per-widget random-hash id (e.g. #blog-content-fBpiT2lwHw) — so
+   this ships once here and applies to every post automatically, no
+   per-post GHL config needed. One piece of the hero doesn't exist as a
+   real element GHL renders — the description paragraph — so
+   js/dgs-growth-article.js creates a real `.dgs-ga-dek` element
+   (reusing that exact class from the static template) from the post's
+   own `<meta name="description">` and inserts it as a further direct
+   child here, for `order`/grid placement to pick up like any other
+   real hero element. */
 
-/* The hero's `::before` (in "2. Native GHL Blog Hero" below) breaks out
-   to `width: 100vw` so it stays full-bleed on every post automatically,
-   with no per-post dependency on GHL's own "Section Width: Full Width"
-   builder toggle (see the header comment above). `100vw` includes the
-   browser's vertical scrollbar gutter, so without this it creates a
-   page-level horizontal scrollbar on any OS/browser with a reserved
-   (non-overlay) scrollbar. `.blog-html-container-single` itself must
-   stay `overflow: visible` (set in "1. Template scope" below) or the
-   breakout gets clipped right back — so the overflow has to be caught
-   here, at the actual viewport scroll container, instead. This is the
-   one deliberate exception to this file's own bare-tag scoping rule
-   (see "1. Template scope" below): it's unavoidable because
-   `html`/`body` is the only element that can mask `100vw` overflow
-   without also clipping the breakout that depends on it. */
+/* `::before` below breaks out to `width: 100vw` for a full-bleed navy
+   band on every post automatically, no per-post dependency on GHL's
+   "Section Width: Full Width" toggle. `100vw` includes the browser's
+   vertical scrollbar gutter, so without this it creates a page-level
+   horizontal scrollbar on any OS/browser with a reserved (non-overlay)
+   scrollbar. `.blog-html-container-single` itself must stay
+   `overflow: visible` (below) or the breakout gets clipped right back
+   — so the overflow has to be caught here, at the actual viewport
+   scroll container. One deliberate exception to this file's own
+   bare-tag scoping: unavoidable because `html`/`body` is the only
+   element that can mask `100vw` overflow without clipping the
+   breakout that depends on it. */
 html,
 body {
   overflow-x: hidden;
@@ -954,10 +945,10 @@ body {
 
 /* ---------------------------------------------------------
    1. Template scope
-   Every rule below is scoped under .blog-html-container-single,
-   the stable wrapper GHL's blog-theme always renders around a Blog
-   Content widget's output. Nothing here touches a bare tag/id or any
-   selector that could match outside that widget.
+   Every rule below is scoped under .blog-html-container-single, the
+   stable wrapper GHL's blog-theme always renders around a Blog Content
+   widget's output. Nothing here touches a bare tag/id or any selector
+   that could match outside that widget.
 --------------------------------------------------------- */
 .blog-html-container-single {
   display: grid !important;
@@ -969,10 +960,8 @@ body {
   /* GHL's OWN default theme CSS (not ours) ships
      `.blog-html-container-single { margin: 0 auto; max-width: 800px;
      overflow: hidden }`. Left alone, that squeezes the whole widget
-     into an 800px centered column (exposing the sitewide navy
-     `body.dgs-page` background on both sides for the widget's full
-     height — the "navy page / white body" split) AND clips the hero's
-     `::before` full-bleed backdrop below, since an ancestor with
+     into an 800px centered column AND clips the hero's `::before`
+     full-bleed backdrop below, since an ancestor with
      `overflow: hidden` clips escaping descendants regardless of their
      own position/transform. All three must be beaten here, not just
      the child rules. (GHL also exposes a `.blog-content-fluid-width`
@@ -987,19 +976,21 @@ body {
 /* ---------------------------------------------------------
    2. Native GHL Blog Hero
    Native render order is: image, title, category, date, content.
-   Target order, matching .dgs-ga-hero exactly: back-link, category,
-   title, dek, byline ("By [author] · [n min read]"), then the image
-   full-width below the hero (with the same overlap .dgs-ga-cover
-   uses), then the white article body. `order` moves the real elements
-   with zero DOM changes; js/dgs-growth-article.js additionally
-   inserts the dek/byline as new direct-child elements (see the header
-   comment above) for `order` to place the same way.
+   Target order: back-link, category, title, date, description stacked
+   in a left column, with the featured image as a large column on the
+   right — one navy hero band shared by both. Mobile stays a single
+   stacked column, text first then image (same order the 2-column grid
+   reduces to). `order` moves the real elements (image included) with
+   zero DOM changes.
 
    The navy hero background is a single `::before` grid item (below)
-   rather than each element carrying its own background: it spans
-   exactly the hero's rows (auto-sized to their content height, no
-   guessed number) while only its own width bleeds to the viewport
-   edge via the standard `calc(50% - 50vw)` margin technique. */
+   rather than a background on each element: with two columns, each
+   element breaking out to its own `width:100vw` would bleed every text
+   row across the image column too. A `::before` placed as a grid item
+   spans exactly the hero's rows (auto-sized to content, no guessed
+   number) while only its own width bleeds to the viewport edge via the
+   standard `calc(50% - 50vw)` margin technique — the real content
+   elements stay normal, non-breakout grid items sized to their track. */
 .blog-html-container-single::before {
   content: '';
   grid-column: 1 / -1;
@@ -1017,11 +1008,17 @@ body {
     var(--ga-navy, #0A1F33);
 }
 
+@media (min-width: 960px) {
+  .blog-html-container-single::before {
+    grid-row: 1 / 6;
+  }
+}
+
 .blog-html-container-single > .blog-back-button,
 .blog-html-container-single > .meta-section-1:has(.blog-category),
 .blog-html-container-single > .blog-content-title,
-.blog-html-container-single > .dgs-ga-dek,
-.blog-html-container-single > .dgs-ga-meta {
+.blog-html-container-single > .meta-section-1:has(.blog-date),
+.blog-html-container-single > .dgs-ga-dek {
   box-sizing: border-box;
   padding-left: 1rem;
   padding-right: 1rem;
@@ -1031,8 +1028,8 @@ body {
   .blog-html-container-single > .blog-back-button,
   .blog-html-container-single > .meta-section-1:has(.blog-category),
   .blog-html-container-single > .blog-content-title,
-  .blog-html-container-single > .dgs-ga-dek,
-  .blog-html-container-single > .dgs-ga-meta {
+  .blog-html-container-single > .meta-section-1:has(.blog-date),
+  .blog-html-container-single > .dgs-ga-dek {
     padding-left: 2rem;
     padding-right: 2rem;
   }
@@ -1042,21 +1039,51 @@ body {
   .blog-html-container-single > .blog-back-button,
   .blog-html-container-single > .meta-section-1:has(.blog-category),
   .blog-html-container-single > .blog-content-title,
-  .blog-html-container-single > .dgs-ga-dek,
-  .blog-html-container-single > .dgs-ga-meta {
+  .blog-html-container-single > .meta-section-1:has(.blog-date),
+  .blog-html-container-single > .dgs-ga-dek {
     padding-left: 3.5rem;
     padding-right: 3.5rem;
   }
 }
 
-/* .dgs-ga-hero shows no publish date — GHL's native date element has
-   no equivalent slot in the target hero, so it's hidden (not removed:
-   the real data stays in the DOM, just not rendered) rather than
-   fighting over the same box .dgs-ga-meta now occupies. */
-.blog-html-container-single > .meta-section-1:has(.blog-date) {
-  display: none;
+/* Desktop 2-column hero, matching .dgs-event-hero-grid: text in
+   column 1 (rows 1-5, one row per real element including the
+   description), image in column 2 spanning the same 5 rows
+   (grid-row set on .blog-cover-image-container below), vertically
+   centered against the text. column-gap replaces these elements' own
+   right-hand gutter so it isn't doubled at the seam between columns. */
+@media (min-width: 960px) {
+  .blog-html-container-single {
+    grid-template-columns: 1.05fr 0.95fr;
+    column-gap: 4rem;
+  }
+
+  .blog-html-container-single > .blog-back-button,
+  .blog-html-container-single > .meta-section-1:has(.blog-category),
+  .blog-html-container-single > .blog-content-title,
+  .blog-html-container-single > .meta-section-1:has(.blog-date),
+  .blog-html-container-single > .dgs-ga-dek {
+    grid-column: 1;
+    padding-right: 0;
+  }
+
+  .blog-html-container-single > .blog-back-button { grid-row: 1; }
+  .blog-html-container-single > .meta-section-1:has(.blog-category) { grid-row: 2; }
+  .blog-html-container-single > .blog-content-title { grid-row: 3; }
+  .blog-html-container-single > .meta-section-1:has(.blog-date) { grid-row: 4; }
+  .blog-html-container-single > .dgs-ga-dek { grid-row: 5; }
+
+  .blog-html-container-single > .blog-html,
+  .blog-html-container-single > .blog-tags,
+  .blog-html-container-single > .hl-blog-content-back-to-top-container {
+    grid-column: 1 / -1;
+  }
 }
 
+/* padding-top clears the fixed top nav (.dgs-header) so the hero never
+   starts underneath it — 8.5rem desktop / 6.5rem mobile (see "9.
+   Responsive" below), well past the header's own ~1.15rem/1rem
+   vertical padding + logo height. */
 .blog-html-container-single > .blog-back-button {
   order: 1;
   display: flex !important;
@@ -1102,30 +1129,40 @@ body {
   color: #ffffff !important;
 }
 
-/* Dek and byline: real elements js/dgs-growth-article.js inserts as
-   further direct children (see the header comment above) — reusing
-   .dgs-ga-dek / .dgs-ga-meta as-is from the static template system, so
-   only `order` is set here, matching .dgs-ga-hero's own spacing. */
-.blog-html-container-single > .dgs-ga-dek {
+.blog-html-container-single > .meta-section-1:has(.blog-date) {
   order: 4;
+  padding-top: 0 !important;
+  padding-bottom: 1.1rem !important;
 }
 
-/* .dgs-ga-meta already carries its own padding-top + border-top
-   (defined once, above, for the static template); only order and the
-   hero-closing bottom space (elsewhere provided by .dgs-ga-hero's own
-   padding-bottom, which this hero doesn't have) need adding here. */
-.blog-html-container-single > .dgs-ga-meta {
+.blog-html-container-single .blog-date {
+  font-family: var(--font-body) !important;
+  font-size: 0.88rem !important;
+  font-weight: 400 !important;
+  color: rgba(255, 255, 255, 0.62) !important;
+}
+
+/* Description: a real element js/dgs-growth-article.js inserts as a
+   further direct child (see the header comment above) — reusing
+   .dgs-ga-dek as-is from the static template system. order:5 puts it
+   last in the mobile text stack, right after the date; padding-bottom
+   stands in for .dgs-ga-hero's own padding-bottom (this hero has none)
+   to close the hero out before the image (mobile) / white body
+   (desktop). */
+.blog-html-container-single > .dgs-ga-dek {
   order: 5;
   padding-bottom: 2.75rem !important;
 }
 
+/* Featured image: order:6 on mobile (after the text stack, matching
+   the static reference's own text-before-image reading order), grid
+   column 2 / rows 1-5 on desktop (see the 2-column block above) —
+   a real GHL element, not JS-moved. */
 .blog-html-container-single > .blog-cover-image-container {
   order: 6;
   max-width: 100%;
-  margin: -2rem auto 0 !important;
+  margin: 0 auto 3rem !important;
   padding: 0 1rem;
-  position: relative;
-  z-index: 1;
 }
 
 @media (min-width: 768px) {
@@ -1134,9 +1171,13 @@ body {
   }
 }
 
-@media (min-width: 1024px) {
+@media (min-width: 960px) {
   .blog-html-container-single > .blog-cover-image-container {
-    padding: 0 3.5rem;
+    grid-column: 2;
+    grid-row: 1 / 6;
+    align-self: center;
+    margin: 0;
+    padding: 0 3.5rem 0 0;
   }
 }
 
@@ -1177,6 +1218,21 @@ body {
   box-shadow: 0 24px 60px rgba(10, 31, 51, 0.18);
 }
 
+/* Desktop: natural aspect ratio instead of the mobile banner crop
+   (matches .dgs-event-hero-cover img — a large hero-column image reads
+   better at its own proportions than forced into a wide/short crop),
+   and a translucent white border instead of a shadow, since it now
+   sits directly on the navy hero rather than overlapping onto white. */
+@media (min-width: 960px) {
+  .blog-html-container-single .blog-content-blog-image {
+    aspect-ratio: auto;
+    height: auto;
+    border-radius: var(--radius-xl, 10px) !important;
+    box-shadow: none;
+    border: 1px solid rgba(255, 255, 255, 0.14);
+  }
+}
+
 /* ---------------------------------------------------------
    5. Article content
    #blogPostContent is a fixed GHL id (not a per-widget random hash),
@@ -1209,7 +1265,9 @@ body {
    The :has() guard switches this wrapper to the 2-column layout only
    once that sidebar actually exists, so a post with no h2s (or the
    instant before the script runs) stays exactly as it is above:
-   .dgs-blog-render alone, single centered column, untouched. */
+   .dgs-blog-render alone, single centered column, untouched. This is a
+   separate layout context from the hero above — the sticky on-page nav
+   lives beside the article body only, never inside or beside the hero. */
 .blog-html-container-single > .blog-html:has(.dgs-ga-toc) {
   display: grid;
   grid-template-columns: 1fr;
@@ -1305,10 +1363,6 @@ body {
   .blog-html-container-single > .blog-back-button {
     padding-top: 6.5rem !important;
     padding-bottom: 1.5rem !important;
-  }
-
-  .blog-html-container-single > .blog-cover-image-container {
-    margin-top: -1.25rem !important;
   }
 
   .blog-html-container-single .blog-content-blog-image {
