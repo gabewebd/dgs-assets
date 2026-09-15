@@ -52,15 +52,33 @@
      template's own dek is hand-typed from (verified identical on
      founder-dependency-test.html), so this is real per-post data, not
      invented copy. Guarded the same way as the TOC below: only on a
-     GHL post, only once. */
-  var ghlHero = document.querySelector('.blog-html-container-single');
-  var ghlTitle = document.querySelector('.blog-html-container-single > .blog-content-title');
-  var descMeta = document.querySelector('meta[name="description"]');
-  if (ghlHero && ghlTitle && descMeta && descMeta.content && !ghlHero.querySelector('.dgs-ga-dek')) {
-    var dek = document.createElement('p');
-    dek.className = 'dgs-ga-dek';
-    dek.textContent = descMeta.content;
-    ghlHero.insertBefore(dek, ghlTitle.nextSibling);
+     GHL post, only once.
+
+     GHL's blog widget is a Nuxt/Vue component that can still be mid-
+     hydration (or re-render for an unrelated reason, e.g. lazy-loaded
+     image swap) after this script's first pass — Vue doesn't know
+     about a node we inserted outside its own virtual DOM, so a later
+     re-render of .blog-html-container-single's children silently drops
+     it (confirmed live: the dek would flash in, then vanish once the
+     page finished rendering). insertDek() is idempotent (no-ops once
+     the dek already exists), so a MutationObserver just re-runs it
+     every time that container's children change, for the life of the
+     page, instead of a single fire-and-forget insert. */
+  function insertDek() {
+    var ghlHero = document.querySelector('.blog-html-container-single');
+    var ghlTitle = ghlHero && ghlHero.querySelector(':scope > .blog-content-title');
+    var descMeta = document.querySelector('meta[name="description"]');
+    if (ghlHero && ghlTitle && descMeta && descMeta.content && !ghlHero.querySelector(':scope > .dgs-ga-dek')) {
+      var dek = document.createElement('p');
+      dek.className = 'dgs-ga-dek';
+      dek.textContent = descMeta.content;
+      ghlHero.insertBefore(dek, ghlTitle.nextSibling);
+    }
+  }
+  var ghlHeroEl = document.querySelector('.blog-html-container-single');
+  if (ghlHeroEl) {
+    insertDek();
+    new MutationObserver(insertDek).observe(ghlHeroEl, { childList: true });
   }
 
   /* ─── GHL: build the on-page nav from .dgs-blog-render's headings ───

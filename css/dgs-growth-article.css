@@ -937,10 +937,23 @@
    scroll container. One deliberate exception to this file's own
    bare-tag scoping: unavoidable because `html`/`body` is the only
    element that can mask `100vw` overflow without clipping the
-   breakout that depends on it. */
+   breakout that depends on it.
+
+   `overflow-x: clip`, not `hidden` — this file is shared sitewide
+   (growth-hub.html loads it too, for the .dgs-ga token scope), and
+   `hidden` on one axis forces the OTHER axis's computed value to
+   `auto` per the CSS Overflow spec, turning `body` into a scroll
+   container. That broke growth-hub.html's `.dgs-hub-jumpnav`
+   `position: sticky` (its nearest scrolling ancestor became `body`
+   instead of the viewport). Same fix already established elsewhere in
+   this codebase for the same failure mode (see `#approach` in
+   dgs-about.css): `clip` suppresses the overflow without creating a
+   scroll container, so `overflow-y` can stay `visible` and sticky
+   descendants keep the viewport as their scrolling ancestor. */
 html,
 body {
-  overflow-x: hidden;
+  overflow-x: clip;
+  overflow-y: visible;
 }
 
 /* ---------------------------------------------------------
