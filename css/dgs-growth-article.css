@@ -1244,6 +1244,13 @@ body {
 --------------------------------------------------------- */
 .blog-html-container-single > .meta-section-1:has(.blog-category) {
   order: 2;
+  /* Explicit row, matching every other real hero element (see the
+     mobile-stacking comment above .blog-back-button): .before's
+     `grid-row: 1 / 7` occupies rows 1-7 outright, so without this an
+     auto-placed category gets skipped past that whole reserved block
+     and lands in a new implicit row after the image instead of between
+     the back-link and the title. */
+  grid-row: 2;
   padding-top: 0 !important;
   padding-bottom: 1.1rem !important;
 }
@@ -1427,3 +1434,4 @@ body {
     border-radius: var(--radius-md, 10px) !important;
   }
 }
+
