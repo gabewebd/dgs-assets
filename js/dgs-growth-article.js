@@ -45,6 +45,58 @@
   updateProgress();
   updateTopBtn();
 
+  /* ─── GHL: build the on-page nav from .dgs-blog-render's headings ───
+     The static article template hand-authors .dgs-ga-toc with its links
+     and heading ids per post. A GHL post's .dgs-blog-render body varies
+     every time, so instead of hand-authoring that html, this reads
+     whatever h2 headings actually exist and builds the same markup.
+     Guarded to a GHL post specifically (.dgs-blog-render present) with
+     no hand-authored sidebar already there, so the static template's
+     own .dgs-ga-toc is never touched or duplicated. */
+  var ghlRender = document.querySelector('.dgs-blog-render');
+  if (ghlRender && !document.querySelector('.dgs-ga-toc')) {
+    var ghlHeadings = Array.prototype.slice.call(ghlRender.querySelectorAll('h2'));
+    if (ghlHeadings.length) {
+      var slugify = function (text) {
+        return text.toLowerCase().trim()
+          .replace(/[^a-z0-9\s-]/g, '')
+          .replace(/\s+/g, '-')
+          .replace(/-+/g, '-') || 'section';
+      };
+      var usedIds = {};
+      var listItems = ghlHeadings.map(function (h) {
+        var base = h.id || slugify(h.textContent);
+        var id = base;
+        var n = 2;
+        while (usedIds[id]) { id = base + '-' + (n++); }
+        usedIds[id] = true;
+        h.id = id;
+
+        var a = document.createElement('a');
+        a.href = '#' + id;
+        a.textContent = h.textContent;
+        var li = document.createElement('li');
+        li.appendChild(a);
+        return li;
+      });
+
+      var ghlAside = document.createElement('aside');
+      ghlAside.className = 'dgs-ga-toc';
+      ghlAside.setAttribute('data-ga-toc', '');
+      ghlAside.setAttribute('data-open', 'false');
+      ghlAside.innerHTML =
+        '<button class="dgs-ga-toc-toggle" data-ga-toc-toggle aria-expanded="false">On This Page' +
+        '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="6 9 12 15 18 9"></polyline></svg></button>' +
+        '<span class="dgs-ga-toc-label">On This Page</span>';
+      var ghlList = document.createElement('ul');
+      ghlList.className = 'dgs-ga-toc-list';
+      listItems.forEach(function (li) { ghlList.appendChild(li); });
+      ghlAside.appendChild(ghlList);
+
+      ghlRender.parentNode.insertBefore(ghlAside, ghlRender);
+    }
+  }
+
   /* ─── Mobile TOC collapse/expand ─── */
   var toc = document.querySelector('[data-ga-toc]');
   var tocToggle = document.querySelector('[data-ga-toc-toggle]');
