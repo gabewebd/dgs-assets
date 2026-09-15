@@ -45,22 +45,42 @@
   updateProgress();
   updateTopBtn();
 
-  /* ─── GHL: hero description from the post's own meta description ───
-     .dgs-ga-hero shows a dek/description paragraph under the date;
-     GHL's native Blog Content widget doesn't render one. Reuses the
-     post's own <meta name="description"> — the same text the static
-     template's own dek is hand-typed from (verified identical on
-     founder-dependency-test.html), so this is real per-post data, not
-     invented copy. Guarded the same way as the TOC below: only on a
-     GHL post, only once. */
+  /* ─── GHL: hero dek + byline from real per-post data ───
+     .dgs-ga-hero shows a dek paragraph and a "By [author] · [n min
+     read]" byline; GHL's native Blog Content widget renders neither.
+     The dek reuses the post's own <meta name="description"> — the
+     same text the static template's own dek is hand-typed from
+     (verified identical on founder-dependency-test.html). Read time
+     is computed from the actual word count of .dgs-blog-render, since
+     GHL has an internal per-post read-time field but it isn't
+     populated. Author is a fixed "Digital GrowthScale" byline,
+     matching the static template's own hard-typed byline (not a
+     per-post GHL field either — every article uses the same text).
+     Guarded the same way as the TOC below: only on a GHL post, only
+     once. */
   var ghlHero = document.querySelector('.blog-html-container-single');
   var ghlTitle = document.querySelector('.blog-html-container-single > .blog-content-title');
-  var descMeta = document.querySelector('meta[name="description"]');
-  if (ghlHero && ghlTitle && descMeta && descMeta.content && !ghlHero.querySelector('.dgs-ga-dek')) {
-    var dek = document.createElement('p');
-    dek.className = 'dgs-ga-dek';
-    dek.textContent = descMeta.content;
-    ghlHero.insertBefore(dek, ghlTitle.nextSibling);
+  if (ghlHero && ghlTitle && !ghlHero.querySelector('.dgs-ga-dek')) {
+    var insertAfter = ghlTitle;
+
+    var descMeta = document.querySelector('meta[name="description"]');
+    if (descMeta && descMeta.content) {
+      var dek = document.createElement('p');
+      dek.className = 'dgs-ga-dek';
+      dek.textContent = descMeta.content;
+      ghlHero.insertBefore(dek, insertAfter.nextSibling);
+      insertAfter = dek;
+    }
+
+    var renderForReadTime = document.querySelector('.dgs-blog-render');
+    if (renderForReadTime) {
+      var wordCount = (renderForReadTime.textContent || '').trim().split(/\s+/).filter(Boolean).length;
+      var minutes = Math.max(1, Math.round(wordCount / 225));
+      var byline = document.createElement('div');
+      byline.className = 'dgs-ga-meta';
+      byline.innerHTML = '<span><strong>By Digital GrowthScale</strong></span><span>' + minutes + ' min read</span>';
+      ghlHero.insertBefore(byline, insertAfter.nextSibling);
+    }
   }
 
   /* ─── GHL: build the on-page nav from .dgs-blog-render's headings ───
