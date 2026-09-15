@@ -1131,8 +1131,9 @@ body {
 
 .blog-html-container-single > .meta-section-1:has(.blog-date) {
   order: 4;
-  padding-top: 0 !important;
+  padding-top: 1.5rem !important;
   padding-bottom: 1.1rem !important;
+  border-top: 1px solid rgba(255, 255, 255, 0.14);
 }
 
 .blog-html-container-single .blog-date {
@@ -1175,9 +1176,17 @@ body {
   .blog-html-container-single > .blog-cover-image-container {
     grid-column: 2;
     grid-row: 1 / 6;
-    align-self: center;
+    /* align-self: start (not center) + real top/bottom padding, rather
+       than trusting the grid to center it: the row span's height comes
+       from column 1's text stack, so centering alone put the image
+       flush against the nav whenever that text stack was short. The
+       padding here is now itself the tallest thing in rows 1-5, so it
+       sets the hero's height (grid tracks size to fit their content) —
+       this is what actually "grows" the hero, not a height/min-height
+       on the hero itself. */
+    align-self: start;
     margin: 0;
-    padding: 0 3.5rem 0 0;
+    padding: 7.5rem 3.5rem 5rem 0;
   }
 }
 
