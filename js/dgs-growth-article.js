@@ -6,20 +6,80 @@
 (function () {
   'use strict';
 
-  var body = document.querySelector('.dgs-ga-body');
+  /* Guards every selector/DOM-creation below against running before
+     <body> is parsed at all — this script's own placement in the page
+     is GHL page-builder content outside this repo, not something this
+     file controls, so it can't assume it always loads at the end of
+     body the way the static template's own copy does. Checking
+     readyState (not a bare `addEventListener('DOMContentLoaded', ...)`)
+     matters here specifically: if this script is injected/loads AFTER
+     DOMContentLoaded has already fired (the common case, since it's
+     usually placed late in body), a bare listener would never fire at
+     all and silently disable everything in this file. */
+  function whenReady(fn) {
+    if (document.readyState === 'loading') {
+      document.addEventListener('DOMContentLoaded', fn);
+    } else {
+      fn();
+    }
+  }
 
-  /* ─── Reading progress bar ─── */
+  whenReady(function () {
+
+  /* ─── Reading progress bar ───
+     Measures the article/content element, NOT the static template's
+     own `.dgs-ga-body` specifically: that class doesn't exist at all
+     on a native GHL post, so this always re-queries both possible
+     targets fresh on every call rather than caching one reference at
+     script-load time. Two reasons this has to stay a live query
+     instead of a cached `var`:
+     1. On a GHL post, `.dgs-ga-body` never exists — `#blogPostContent`
+        (a fixed GHL id, not a per-widget random hash, so this is
+        safe/stable) is the equivalent "just the written content, not
+        hero/TOC/related/CTA" element there.
+     2. GHL's Vue hydration can replace .blog-html-container-single
+        (and everything inside it, #blogPostContent included) wholesale
+        — documented in insertDek() below. A cached reference to the
+        old node would go stale/detached, and a detached element's
+        getBoundingClientRect() is always all-zero, which would look
+        exactly like "the bar stopped updating" with no error thrown. */
+  function getArticleEl() {
+    return document.querySelector('.dgs-ga-body') || document.getElementById('blogPostContent');
+  }
+
+  /* The bar's own markup, `<div class="dgs-ga-progress" data-ga-progress
+     aria-hidden="true"></div>`, is hand-authored directly in the static
+     template's HTML — but a native GHL post's page (built entirely in
+     GHL's page builder, outside this repo) never had it pasted in at
+     all, on any post checked live. Same situation as the dek paragraph
+     and the TOC sidebar below: a decorative piece GHL doesn't render
+     natively, so this creates it once (idempotent, guarded by the same
+     query used everywhere else here) rather than requiring a manual
+     per-post GHL edit. Inserted as body's first child so it sits above
+     everything, matching the static template's own placement. */
+  function ensureProgressBar() {
+    if (document.querySelector('[data-ga-progress]')) return;
+    var bar = document.createElement('div');
+    bar.className = 'dgs-ga-progress';
+    bar.setAttribute('data-ga-progress', '');
+    bar.setAttribute('aria-hidden', 'true');
+    document.body.insertBefore(bar, document.body.firstChild);
+  }
+  ensureProgressBar();
+
   var progress = document.querySelector('[data-ga-progress]');
   function updateProgress() {
-    if (!progress || !body) return;
-    var rect = body.getBoundingClientRect();
+    progress = progress || document.querySelector('[data-ga-progress]');
+    var articleEl = getArticleEl();
+    if (!progress || !articleEl) return;
+    var rect = articleEl.getBoundingClientRect();
     var total = rect.height - window.innerHeight;
     var scrolled = -rect.top;
     var pct = total > 0 ? Math.min(Math.max(scrolled / total, 0), 1) : 0;
     progress.style.width = (pct * 100) + '%';
   }
 
-  /* ─── Back to top ─── */
+  /* ─── Back to top (our own floating button, [data-ga-top]) ─── */
   var topBtn = document.querySelector('[data-ga-top]');
   function updateTopBtn() {
     if (!topBtn) return;
@@ -30,6 +90,23 @@
       window.scrollTo({ top: 0, behavior: 'smooth' });
     });
   }
+
+  /* ─── GHL: fix the native "Back to Top" button ───
+     GHL's own widget renders `.hl-blog-content-back-to-top-container
+     > button.back-to-top` — a bare <button> with no href/onclick;
+     its scroll behavior depends entirely on GHL's own Vue click
+     binding attaching and targeting the right container, and when
+     that doesn't happen, the button does nothing (no native fallback
+     behavior for a plain button click). Fixed via delegation on
+     `document` rather than a direct listener on the button: this way
+     it needs no MutationObserver and survives Vue re-rendering the
+     button underneath it, since we never hold a reference to the
+     button itself, only check what was clicked. */
+  document.addEventListener('click', function (e) {
+    var btn = e.target.closest && e.target.closest('.hl-blog-content-back-to-top-container .back-to-top');
+    if (!btn) return;
+    window.scrollTo({ top: 0, behavior: 'smooth' });
+  });
 
   var ticking = false;
   window.addEventListener('scroll', function () {
@@ -44,6 +121,12 @@
 
   updateProgress();
   updateTopBtn();
+  /* Content height can change after this point (GHL hydration,
+     images finishing loading), independent of any scroll event —
+     recalculate once more when the page is fully loaded so the bar
+     reflects final content height even if the user hasn't scrolled
+     since. */
+  window.addEventListener('load', updateProgress);
 
   /* ─── GHL: hero description from the post's own meta description ───
      .dgs-ga-hero shows a dek/description paragraph under the date;
@@ -87,33 +170,49 @@
   /* ─── GHL: relabel the native "Back to Blog" link ───
      GHL's blog widget hardcodes this link's visible text and
      aria-label; our HTML/CSS never touches it, so it can only be
-     changed from here. Rewrites text nodes in place (leaving the arrow
-     icon element alone) rather than replacing innerHTML, and only the
-     nodes that still say "Back to Blog" so re-runs are no-ops. Reuses
-     insertDek's own MutationObserver/re-query strategy for the same
-     reason: GHL's Vue hydration can replace this subtree wholesale. */
+     changed from here. The real markup is
+     `<a class="blog-back-button"><i class="blog-left-arrow"></i>
+     <span>Back to Blog</span></a>` — the text is NOT a direct text-node
+     child of the <a> (a childNodes-only scan tried that previously and
+     silently matched nothing, since <i> and <span> are both element
+     nodes), it's one level deeper inside the <span>. A TreeWalker
+     visits every descendant text node regardless of nesting, so this
+     keeps working even if GHL changes the wrapper markup again. Only
+     rewrites nodes that still say "Back to Blog" so re-runs are
+     no-ops. Reuses insertDek's own MutationObserver/re-query strategy
+     for the same reason: GHL's Vue hydration can replace this subtree
+     wholesale. */
   function renameBackButton() {
     var backBtn = document.querySelector('.blog-html-container-single > .blog-back-button');
     if (!backBtn) return;
     if (backBtn.getAttribute('aria-label') !== 'Back to Growth Hub') {
       backBtn.setAttribute('aria-label', 'Back to Growth Hub');
     }
-    Array.prototype.forEach.call(backBtn.childNodes, function (node) {
-      if (node.nodeType === Node.TEXT_NODE && /back to blog/i.test(node.textContent)) {
+    var walker = document.createTreeWalker(backBtn, NodeFilter.SHOW_TEXT);
+    var node;
+    while ((node = walker.nextNode())) {
+      if (/back to blog/i.test(node.textContent)) {
         node.textContent = node.textContent.replace(/back to blog/i, 'Back to Growth Hub');
       }
-    });
+    }
   }
 
   function syncGhlHero() {
     insertDek();
     renameBackButton();
+    updateProgress();
   }
-  var ghlHeroEl = document.querySelector('.blog-html-container-single');
-  if (ghlHeroEl) {
-    syncGhlHero();
-    new MutationObserver(syncGhlHero).observe(document.body, { childList: true, subtree: true });
-  }
+  /* Always run once AND always observe — not gated behind an initial
+     `.blog-html-container-single` presence check. That check would
+     race GHL's own render: if this script executes before GHL has
+     inserted anything yet, the gate would skip creating the observer
+     entirely, and nothing here would ever run again even once GHL
+     does render (this is the most likely reason the previous
+     "Back to Growth Hub" attempt never took effect on some loads).
+     insertDek/renameBackButton/updateProgress all already no-op safely
+     when their targets don't exist yet. */
+  syncGhlHero();
+  new MutationObserver(syncGhlHero).observe(document.body, { childList: true, subtree: true });
 
   /* ─── GHL: build the on-page nav from .dgs-blog-render's headings ───
      The static article template hand-authors .dgs-ga-toc with its links
@@ -200,4 +299,6 @@
 
     headings.forEach(function (h) { headingObserver.observe(h); });
   }
+
+  }); // whenReady
 })();
