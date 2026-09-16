@@ -267,45 +267,17 @@
   margin-bottom: 0.9rem;
 }
 
-/* Mobile shows the disclosure button instead, which already carries
-   this same label text. */
-@media (max-width: 959px) {
-  .dgs-ga-toc-label {
-    display: none;
-  }
-}
-
-/* Mobile: collapsible disclosure */
+/* Mobile disclosure toggle removed (user request) — the "On This Page"
+   list is now always visible at every width, so .dgs-ga-toc-label (this
+   rule) is the ONLY place the "On This Page" heading text renders now.
+   .dgs-ga-toc-toggle below is unconditionally display:none instead of
+   deleted from the DOM: buildToc() (js/dgs-growth-article.js) still
+   creates it as part of the aside's innerHTML on native GHL posts, and
+   leaving that JS untouched (rather than special-casing its markup) is
+   the smaller change — hiding it in CSS alone is enough for it to have
+   no visible or interactive effect anywhere. */
 .dgs-ga-toc-toggle {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  width: 100%;
-  background: var(--ga-surface);
-  border: 1px solid var(--ga-hairline);
-  border-radius: var(--radius-md, 10px);
-  padding: 0.85rem 1.1rem;
-  cursor: pointer;
-  font-family: var(--font-body);
-  font-size: 0.85rem;
-  font-weight: 700;
-  color: var(--ga-ink);
-}
-
-@media (min-width: 960px) {
-  .dgs-ga-toc-toggle {
-    display: none;
-  }
-}
-
-.dgs-ga-toc-toggle svg {
-  width: 16px;
-  height: 16px;
-  transition: transform 0.3s ease;
-}
-
-.dgs-ga-toc[data-open="true"] .dgs-ga-toc-toggle svg {
-  transform: rotate(180deg);
+  display: none;
 }
 
 .dgs-ga-toc-list {
@@ -317,16 +289,6 @@
   flex-direction: column;
   gap: 1.15rem;
   max-width: 100%;
-}
-
-@media (max-width: 959px) {
-  .dgs-ga-toc-list {
-    display: none;
-    margin-top: 1rem !important;
-  }
-  .dgs-ga-toc[data-open="true"] .dgs-ga-toc-list {
-    display: flex;
-  }
 }
 
 .dgs-ga-toc-list a {
@@ -1267,17 +1229,18 @@ body {
   .blog-html-container-single > .blog-cover-image-container {
     grid-column: 2;
     grid-row: 1 / 6;
-    /* align-self: center (user feedback: was `start`, which pinned the
-       image flush against the nav whenever the text column was short —
-       wanted it vertically centered in the row instead). Symmetric
-       top/bottom padding, not the old 7.5rem/5rem split: with `start`
-       that asymmetry only mattered when the image was the row's tallest
-       occupant (in which case align-self is a no-op), but with `center`
-       it would visibly bias the image toward whichever edge got the
-       smaller number, undoing the centering it's meant to achieve. */
-    align-self: center;
+    /* align-self: start (not center) + real top/bottom padding, rather
+       than trusting the grid to center it: the row span's height comes
+       from column 1's text stack, so centering alone put the image
+       flush against the nav whenever that text stack was short. The
+       padding here is now itself the tallest thing in rows 1-5, so it
+       sets the hero's height (grid tracks size to fit their content) —
+       this is what actually "grows" the hero, not a height/min-height
+       on the hero itself. (Tried `center` on user request, then asked
+       to revert back to this.) */
+    align-self: start;
     margin: 0;
-    padding: 4rem 3.5rem 4rem 0;
+    padding: 7.5rem 3.5rem 5rem 0;
   }
 }
 
@@ -1504,4 +1467,3 @@ body {
     border-radius: var(--radius-md, 10px) !important;
   }
 }
-

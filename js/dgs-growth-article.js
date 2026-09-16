@@ -67,6 +67,39 @@
     return document.querySelector('.dgs-blog-render, .dgs-checklist-template-page, .dgs-event-template-page');
   }
 
+  /* ─── Smooth-scroll helper, routed through Lenis when it's active ───
+     js/main.js initializes Lenis sitewide with `autoRaf: true` and
+     exposes the instance as `window.dgsLenis`. Confirmed live (the
+     actual bug behind Back to Top and TOC links landing on the wrong
+     heading — not a wrong offset calculation): autoRaf means Lenis runs
+     its own continuous requestAnimationFrame loop that keeps driving the
+     native scroll position from Lenis's OWN internal virtual scroll
+     state. Calling `window.scrollTo()` directly doesn't inform that
+     state — it fights it instead, so the page starts moving toward the
+     right target and then gets pulled back toward wherever Lenis's
+     untouched internal position still says it should be, one frame
+     later. Every programmatic scroll in this file has to go through
+     Lenis's own `scrollTo(target, { offset })` API instead once Lenis
+     exists, which updates that internal state directly so there's
+     nothing left to fight. `target` is a number (absolute scroll Y) or
+     an element; `offsetPx` (positive = clearance) shifts the landing
+     point up by that many px, e.g. to clear the fixed navbar — Lenis's
+     own `offset` option is ADDED to the target position, so this negates
+     it to match. Falls back to native `window.scrollTo` only when Lenis
+     truly isn't on the page (e.g. prefers-reduced-motion, which
+     js/main.js's initSmoothScroll() never initializes Lenis for at
+     all). */
+  function scrollToTarget(target, offsetPx) {
+    if (window.dgsLenis && typeof window.dgsLenis.scrollTo === 'function') {
+      window.dgsLenis.scrollTo(target, { offset: -(offsetPx || 0) });
+      return;
+    }
+    var y = typeof target === 'number'
+      ? target
+      : target.getBoundingClientRect().top + window.scrollY - (offsetPx || 0);
+    window.scrollTo({ top: y, behavior: 'smooth' });
+  }
+
   /* The bar's own markup, `<div class="dgs-ga-progress" data-ga-progress
      aria-hidden="true"></div>`, is hand-authored directly in the static
      template's HTML — but a native GHL post's page (built entirely in
@@ -107,7 +140,7 @@
   }
   if (topBtn) {
     topBtn.addEventListener('click', function () {
-      window.scrollTo({ top: 0, behavior: 'smooth' });
+      scrollToTarget(0, 0);
     });
   }
 
@@ -124,21 +157,33 @@
   /* ─── GHL: fix the native "Back to Top" button ───
      GHL's own widget renders `.hl-blog-content-back-to-top-container
      > button.back-to-top` — a bare <button> with no href/onclick; its
-     scroll behavior depends entirely on GHL's own Vue click binding.
-     A previous fix here used a bubble-phase `document` listener, which
-     only runs AFTER any handler GHL itself attached directly to the
-     button. That explains the original reported symptom (lands on some
-     other heading, as if something else is driving the scroll): GHL's
-     own handler runs first and, if it calls stopPropagation() (routine
-     in framework-generated handlers), our bubble-phase listener never
-     even fires — GHL's own behavior is the only thing that ran. Capture
-     phase (the `true` 3rd arg) runs BEFORE that handler instead of
-     after it, and stopPropagation() here then blocks GHL's handler from
-     running at all, so ours is the only scroll that happens. Delegation
-     (not a direct listener on the button) still means no
-     MutationObserver is needed — Vue can re-render the button
-     underneath this with no effect, since we never hold a reference to
-     it, only check what was clicked.
+     scroll behavior depends entirely on GHL's own Vue click binding,
+     which is attached DIRECTLY to that button element (standard Vue
+     `@click="handler"` compiles to `element.addEventListener('click',
+     handler)` on the actual rendered node — not a document-level
+     delegate), so GHL's handler always runs for a click on that node
+     regardless of what else is listening elsewhere.
+
+     A capture-phase `document` listener (tried first) should in theory
+     still run before that — capturing always finishes before a
+     listener on the target itself fires, per spec, regardless of
+     registration order — but user testing after that version still
+     showed the OLD symptom (lands on whatever heading is nearest the
+     current scroll position, not the first one), meaning GHL's handler
+     was still the one actually driving the scroll. Rather than keep
+     guessing at event-phase timing, this instead REMOVES GHL's handler
+     outright: cloning the button (`cloneNode`) copies its markup but
+     not any JS listeners attached to the original node, so the clone
+     is a clean element with zero click behavior of its own.
+     Swapping it in and attaching only our own listener means there is
+     no longer a second handler to race against — deterministic
+     regardless of registration order or how many listeners GHL had
+     attached. `data-ga-fixed` guards this idempotent (skips an
+     already-cloned button) the same way every other GHL-sync function
+     here guards against the shared MutationObserver re-running it, and
+     lets this correctly re-fix a wholesale replacement button if GHL's
+     Vue hydration ever swaps the subtree back in (same documented
+     behavior as insertDek() above).
 
      Destination is the article's FIRST heading, not window top (user
      feedback: this button lives at the bottom of the article, and the
@@ -147,24 +192,27 @@
      always agrees with whatever the on-page nav's first entry points
      to. Falls back to window top only if the post has no headings at
      all for buildToc() to have found either. */
-  document.addEventListener('click', function (e) {
-    var btn = e.target.closest && e.target.closest('.hl-blog-content-back-to-top-container .back-to-top');
-    if (!btn) return;
-    e.preventDefault();
-    e.stopPropagation();
-    var articleEl = getGhlRender() || getArticleEl();
-    /* h2 only, matching exactly what buildToc() below reads to build the
-       "On This Page" nav — so this always lands on the same section its
-       own first entry points to, not some other heading level it never
-       listed. */
-    var firstHeading = articleEl && articleEl.querySelector('h2');
-    if (firstHeading) {
-      var y = firstHeading.getBoundingClientRect().top + window.scrollY - TOC_SCROLL_OFFSET;
-      window.scrollTo({ top: y, behavior: 'smooth' });
-    } else {
-      window.scrollTo({ top: 0, behavior: 'smooth' });
-    }
-  }, true);
+  function fixBackToTop() {
+    var btn = document.querySelector('.hl-blog-content-back-to-top-container .back-to-top');
+    if (!btn || btn.getAttribute('data-ga-fixed')) return;
+    var clean = btn.cloneNode(true);
+    clean.setAttribute('data-ga-fixed', '1');
+    btn.parentNode.replaceChild(clean, btn);
+    clean.addEventListener('click', function (e) {
+      e.preventDefault();
+      var articleEl = getGhlRender() || getArticleEl();
+      /* h2 only, matching exactly what buildToc() below reads to build
+         the "On This Page" nav — so this always lands on the same
+         section its own first entry points to, not some other heading
+         level it never listed. */
+      var firstHeading = articleEl && articleEl.querySelector('h2');
+      if (firstHeading) {
+        scrollToTarget(firstHeading, TOC_SCROLL_OFFSET);
+      } else {
+        scrollToTarget(0, 0);
+      }
+    });
+  }
 
   var ticking = false;
   window.addEventListener('scroll', function () {
@@ -370,6 +418,7 @@
     updateProgress();
     buildToc();
     wireToc();
+    fixBackToTop();
   }
   /* Always run once AND always observe — not gated behind an initial
      `.blog-html-container-single` presence check. That check would
@@ -395,9 +444,13 @@
      than depend on every post's own pasted CSS getting this right,
      this computes the offset in JS, reusing the same TOC_SCROLL_OFFSET
      the Back to Top fix above declares. Capture phase + stopPropagation
-     for the same reason as that fix: without it, Lenis's own anchor
-     handling could act on the same click first and scroll to the raw
-     (un-offset) position before this ever runs. */
+     stops Lenis's own `anchors: true` handling from also acting on the
+     same click and scrolling to the raw (un-offset) position; routing
+     the actual scroll through scrollToTarget() (Lenis-aware, see above)
+     stops Lenis's autoRaf loop from fighting a raw window.scrollTo() and
+     pulling the page back toward the wrong position afterward — the
+     same bug that was behind Back to Top landing on the wrong
+     heading. */
   document.addEventListener('click', function (e) {
     var link = e.target.closest && e.target.closest('[data-ga-toc] a[href^="#"]');
     if (!link) return;
@@ -405,8 +458,7 @@
     if (!target) return;
     e.preventDefault();
     e.stopPropagation();
-    var y = target.getBoundingClientRect().top + window.scrollY - TOC_SCROLL_OFFSET;
-    window.scrollTo({ top: y, behavior: 'smooth' });
+    scrollToTarget(target, TOC_SCROLL_OFFSET);
   }, true);
 
   }); // whenReady
