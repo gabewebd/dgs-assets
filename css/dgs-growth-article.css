@@ -1155,7 +1155,9 @@ body {
   padding-top: 8.5rem !important;
   padding-bottom: 2rem !important;
   font-family: var(--font-body) !important;
-  font-size: 0.88rem !important;
+  /* Slightly reduced from 0.88rem (matches the same modest trim applied
+     to the rest of the hero's type — see .blog-content-title below). */
+  font-size: 0.82rem !important;
   font-weight: 600 !important;
   color: rgba(255, 255, 255, 0.65) !important;
   text-decoration: none !important;
@@ -1187,17 +1189,13 @@ body {
   margin: 0 !important;
   font-family: var(--font-heading) !important;
   font-weight: 800 !important;
-  /* var(--fs-h1), not .dgs-ga-title's own clamp(2rem, 4.2vw, 3.1rem):
-     on the static template, `.dgs-page h1 { font-size: var(--fs-h1) }`
-     (dgs-common.css) has HIGHER specificity than `.dgs-ga-title`'s own
-     (non-!important) font-size — one class+tag beats one class — so
-     `.dgs-ga-title`'s clamp is dead code there and every article H1
-     (including ai-readiness-test.html's) actually renders at
-     `--fs-h1: clamp(2.8rem, 6vw, 4.8rem)`, not its own smaller value.
-     Matching that real, larger, winning size here (this selector
-     already needs !important since GHL's own theme also targets this
-     element, so there's no equivalent specificity trap to fall into). */
-  font-size: var(--fs-h1) !important;
+  /* Was var(--fs-h1) == clamp(2.8rem, 6vw, 4.8rem) — matched the static
+     template's own ACTUAL rendered size (`.dgs-page h1` outranks
+     `.dgs-ga-title`'s own smaller clamp there by specificity, so
+     --fs-h1 is what really wins on every article page). Trimmed ~15%
+     off each number afterward (hardcoded, not the var) since even that
+     matched size read a little large for this specific hero. */
+  font-size: clamp(2.4rem, 5.1vw, 4.1rem) !important;
   line-height: 1.15 !important;
   letter-spacing: -0.02em !important;
   text-transform: none !important;
@@ -1215,7 +1213,7 @@ body {
 
 .blog-html-container-single .blog-date {
   font-family: var(--font-body) !important;
-  font-size: 0.88rem !important;
+  font-size: 0.82rem !important;
   font-weight: 400 !important;
   color: rgba(255, 255, 255, 0.62) !important;
 }
@@ -1232,6 +1230,12 @@ body {
   grid-row: 5;
   grid-column: 1;
   padding-bottom: 2.75rem !important;
+  /* Scoped override, not a change to .dgs-ga-dek itself: that shared
+     rule (font-size: 1.1rem) is reused as-is on every other Growth Hub
+     page via the same class, so trimming it there would shrink the
+     dek everywhere, not just this hero. This knocks it down slightly
+     (~9%) for the native blog hero specifically. */
+  font-size: 1rem !important;
 }
 
 /* Featured image: order:6 on mobile (after the text stack, matching
@@ -1305,7 +1309,7 @@ body {
 .blog-html-container-single .blog-category a {
   display: inline-block;
   font-family: var(--font-body) !important;
-  font-size: 0.78rem !important;
+  font-size: 0.72rem !important;
   font-weight: 700 !important;
   letter-spacing: 0.14em !important;
   text-transform: uppercase !important;
@@ -1371,21 +1375,33 @@ body {
 /* js/dgs-growth-article.js scans .dgs-blog-render's h2 headings on load
    and, when there are any, inserts a .dgs-ga-toc sidebar (the same
    component the static article template hand-authors) as a sibling
-   right before .dgs-blog-render, inside this same #blogPostContent.
-   The :has() guard switches this wrapper to the 2-column layout only
-   once that sidebar actually exists, so a post with no h2s (or the
-   instant before the script runs) stays exactly as it is above:
-   .dgs-blog-render alone, single centered column, untouched. This is a
-   separate layout context from the hero above — the sticky on-page nav
-   lives beside the article body only, never inside or beside the hero. */
-.blog-html-container-single > .blog-html:has(.dgs-ga-toc) {
+   right before .dgs-blog-render — via `.dgs-blog-render.parentNode`,
+   whatever that actually is. On a real GHL post that is NOT
+   `#blogPostContent`/`.blog-html` itself: a post's rich body is
+   authored as a "Custom Code" element inside the blog editor, so GHL
+   renders one more real wrapper in between — a `div` carrying the
+   stable attribute `data-code-embed-container` (confirmed live; its
+   own id is a random per-widget hash, same caveat as
+   `#blog-content-fBpiT2lwHw` elsewhere in this file, so it's never
+   targeted directly). Grid-ing `.blog-html` itself (an earlier version
+   of this rule) left the TOC and `.dgs-blog-render` stacked in normal
+   flow inside that untouched wrapper div instead of side-by-side,
+   since neither was actually a direct grid child of `.blog-html`.
+   `:has(> .dgs-ga-toc)` sidesteps needing to name that wrapper at all:
+   it matches whichever element is the TOC's real direct parent, one
+   level up or ten, so this also still works unchanged if GHL ever
+   renders the body with no extra wrapper. Scoped under
+   `.blog-html-container-single` only to keep it from ever matching
+   `.dgs-ga-toc`'s OTHER parent, the static template's own
+   `.dgs-ga-layout` (which already grids itself independently above). */
+.blog-html-container-single :has(> .dgs-ga-toc) {
   display: grid;
   grid-template-columns: 1fr;
   gap: 3rem;
 }
 
 @media (min-width: 960px) {
-  .blog-html-container-single > .blog-html:has(.dgs-ga-toc) {
+  .blog-html-container-single :has(> .dgs-ga-toc) {
     grid-template-columns: 240px 1fr;
     gap: 4.5rem;
     align-items: start;

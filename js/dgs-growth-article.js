@@ -93,20 +93,29 @@
 
   /* ─── GHL: fix the native "Back to Top" button ───
      GHL's own widget renders `.hl-blog-content-back-to-top-container
-     > button.back-to-top` — a bare <button> with no href/onclick;
-     its scroll behavior depends entirely on GHL's own Vue click
-     binding attaching and targeting the right container, and when
-     that doesn't happen, the button does nothing (no native fallback
-     behavior for a plain button click). Fixed via delegation on
-     `document` rather than a direct listener on the button: this way
-     it needs no MutationObserver and survives Vue re-rendering the
-     button underneath it, since we never hold a reference to the
-     button itself, only check what was clicked. */
+     > button.back-to-top` — a bare <button> with no href/onclick; its
+     scroll behavior depends entirely on GHL's own Vue click binding.
+     A previous fix here used a bubble-phase `document` listener, which
+     only runs AFTER any handler GHL itself attached directly to the
+     button. That explains the reported symptom (lands on a heading
+     instead of page top, as if something else is driving the scroll):
+     GHL's own handler runs first and, if it calls stopPropagation()
+     (routine in framework-generated handlers), our bubble-phase
+     listener never even fires — GHL's own behavior is the only thing
+     that ran. Capture phase (the `true` 3rd arg) runs BEFORE that
+     handler instead of after it, and stopPropagation() here then
+     blocks GHL's handler from running at all, so ours is the only
+     scroll that happens. Delegation (not a direct listener on the
+     button) still means no MutationObserver is needed — Vue can
+     re-render the button underneath this with no effect, since we
+     never hold a reference to it, only check what was clicked. */
   document.addEventListener('click', function (e) {
     var btn = e.target.closest && e.target.closest('.hl-blog-content-back-to-top-container .back-to-top');
     if (!btn) return;
+    e.preventDefault();
+    e.stopPropagation();
     window.scrollTo({ top: 0, behavior: 'smooth' });
-  });
+  }, true);
 
   var ticking = false;
   window.addEventListener('scroll', function () {
@@ -197,10 +206,120 @@
     }
   }
 
+  /* ─── GHL: build the on-page nav from .dgs-blog-render's headings ───
+     The static article template hand-authors .dgs-ga-toc with its links
+     and heading ids per post. A GHL post's .dgs-blog-render body varies
+     every time, so instead of hand-authoring that html, this reads
+     whatever h2 headings actually exist and builds the same markup.
+     Guarded to a GHL post specifically (.dgs-blog-render present) with
+     no hand-authored sidebar already there, so the static template's
+     own .dgs-ga-toc is never touched or duplicated.
+
+     This used to run once, standalone, at script level — confirmed
+     live that it never actually built anything on a real GHL post:
+     .dgs-blog-render's own rich-text body (with its 6 real h2s) lands
+     in the DOM on a separate, later timeline from the hero elements
+     insertDek()/renameBackButton() react to, so by the time this ran,
+     .dgs-blog-render either didn't exist yet or GHL was still filling
+     it in. Now called from the same body-level MutationObserver as
+     insertDek/renameBackButton, for the identical reason: it re-checks
+     every time GHL touches the DOM instead of gambling on one exact
+     moment, and its own guard (`!document.querySelector('.dgs-ga-toc')`)
+     keeps it a no-op once the sidebar exists. */
+  function buildToc() {
+    var ghlRender = document.querySelector('.dgs-blog-render');
+    if (!ghlRender || document.querySelector('.dgs-ga-toc')) return;
+    var ghlHeadings = Array.prototype.slice.call(ghlRender.querySelectorAll('h2'));
+    if (!ghlHeadings.length) return;
+
+    var slugify = function (text) {
+      return text.toLowerCase().trim()
+        .replace(/[^a-z0-9\s-]/g, '')
+        .replace(/\s+/g, '-')
+        .replace(/-+/g, '-') || 'section';
+    };
+    var usedIds = {};
+    var listItems = ghlHeadings.map(function (h) {
+      var base = h.id || slugify(h.textContent);
+      var id = base;
+      var n = 2;
+      while (usedIds[id]) { id = base + '-' + (n++); }
+      usedIds[id] = true;
+      h.id = id;
+
+      var a = document.createElement('a');
+      a.href = '#' + id;
+      a.textContent = h.textContent;
+      var li = document.createElement('li');
+      li.appendChild(a);
+      return li;
+    });
+
+    var ghlAside = document.createElement('aside');
+    ghlAside.className = 'dgs-ga-toc';
+    ghlAside.setAttribute('data-ga-toc', '');
+    ghlAside.setAttribute('data-open', 'false');
+    ghlAside.innerHTML =
+      '<button class="dgs-ga-toc-toggle" data-ga-toc-toggle aria-expanded="false">On This Page' +
+      '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="6 9 12 15 18 9"></polyline></svg></button>' +
+      '<span class="dgs-ga-toc-label">On This Page</span>';
+    var ghlList = document.createElement('ul');
+    ghlList.className = 'dgs-ga-toc-list';
+    listItems.forEach(function (li) { ghlList.appendChild(li); });
+    ghlAside.appendChild(ghlList);
+
+    ghlRender.parentNode.insertBefore(ghlAside, ghlRender);
+  }
+
+  /* ─── Wire up the TOC once it exists: mobile toggle + active-section
+     tracking ───
+     Same "used to run once at script level" bug as buildToc() above —
+     if `[data-ga-toc]` didn't exist at that one moment, this silently
+     never wired anything, forever, even after buildToc() (or the
+     static template's own hand-authored markup) added it. Guarded by
+     a `data-wired` flag on the toc element itself so calling this
+     repeatedly from the shared observer doesn't attach duplicate
+     listeners or create a second IntersectionObserver. */
+  function wireToc() {
+    var toc = document.querySelector('[data-ga-toc]');
+    if (!toc || toc.getAttribute('data-wired')) return;
+    toc.setAttribute('data-wired', '1');
+
+    var tocToggle = toc.querySelector('[data-ga-toc-toggle]');
+    if (tocToggle) {
+      tocToggle.addEventListener('click', function () {
+        var open = toc.getAttribute('data-open') === 'true';
+        toc.setAttribute('data-open', open ? 'false' : 'true');
+        tocToggle.setAttribute('aria-expanded', open ? 'false' : 'true');
+      });
+    }
+
+    var tocLinks = Array.prototype.slice.call(toc.querySelectorAll('a[href^="#"]'));
+    var headings = tocLinks
+      .map(function (link) { return document.getElementById(link.getAttribute('href').slice(1)); })
+      .filter(Boolean);
+
+    if (headings.length && 'IntersectionObserver' in window) {
+      var headingObserver = new IntersectionObserver(function (entries) {
+        entries.forEach(function (entry) {
+          if (!entry.isIntersecting) return;
+          var id = entry.target.id;
+          tocLinks.forEach(function (link) {
+            link.classList.toggle('is-active', link.getAttribute('href') === '#' + id);
+          });
+        });
+      }, { rootMargin: '-15% 0px -70% 0px', threshold: 0 });
+
+      headings.forEach(function (h) { headingObserver.observe(h); });
+    }
+  }
+
   function syncGhlHero() {
     insertDek();
     renameBackButton();
     updateProgress();
+    buildToc();
+    wireToc();
   }
   /* Always run once AND always observe — not gated behind an initial
      `.blog-html-container-single` presence check. That check would
@@ -209,96 +328,39 @@
      entirely, and nothing here would ever run again even once GHL
      does render (this is the most likely reason the previous
      "Back to Growth Hub" attempt never took effect on some loads).
-     insertDek/renameBackButton/updateProgress all already no-op safely
-     when their targets don't exist yet. */
+     Every function called above already no-ops safely when its own
+     target doesn't exist yet. */
   syncGhlHero();
   new MutationObserver(syncGhlHero).observe(document.body, { childList: true, subtree: true });
 
-  /* ─── GHL: build the on-page nav from .dgs-blog-render's headings ───
-     The static article template hand-authors .dgs-ga-toc with its links
-     and heading ids per post. A GHL post's .dgs-blog-render body varies
-     every time, so instead of hand-authoring that html, this reads
-     whatever h2 headings actually exist and builds the same markup.
-     Guarded to a GHL post specifically (.dgs-blog-render present) with
-     no hand-authored sidebar already there, so the static template's
-     own .dgs-ga-toc is never touched or duplicated. */
-  var ghlRender = document.querySelector('.dgs-blog-render');
-  if (ghlRender && !document.querySelector('.dgs-ga-toc')) {
-    var ghlHeadings = Array.prototype.slice.call(ghlRender.querySelectorAll('h2'));
-    if (ghlHeadings.length) {
-      var slugify = function (text) {
-        return text.toLowerCase().trim()
-          .replace(/[^a-z0-9\s-]/g, '')
-          .replace(/\s+/g, '-')
-          .replace(/-+/g, '-') || 'section';
-      };
-      var usedIds = {};
-      var listItems = ghlHeadings.map(function (h) {
-        var base = h.id || slugify(h.textContent);
-        var id = base;
-        var n = 2;
-        while (usedIds[id]) { id = base + '-' + (n++); }
-        usedIds[id] = true;
-        h.id = id;
-
-        var a = document.createElement('a');
-        a.href = '#' + id;
-        a.textContent = h.textContent;
-        var li = document.createElement('li');
-        li.appendChild(a);
-        return li;
-      });
-
-      var ghlAside = document.createElement('aside');
-      ghlAside.className = 'dgs-ga-toc';
-      ghlAside.setAttribute('data-ga-toc', '');
-      ghlAside.setAttribute('data-open', 'false');
-      ghlAside.innerHTML =
-        '<button class="dgs-ga-toc-toggle" data-ga-toc-toggle aria-expanded="false">On This Page' +
-        '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="6 9 12 15 18 9"></polyline></svg></button>' +
-        '<span class="dgs-ga-toc-label">On This Page</span>';
-      var ghlList = document.createElement('ul');
-      ghlList.className = 'dgs-ga-toc-list';
-      listItems.forEach(function (li) { ghlList.appendChild(li); });
-      ghlAside.appendChild(ghlList);
-
-      ghlRender.parentNode.insertBefore(ghlAside, ghlRender);
-    }
-  }
-
-  /* ─── Mobile TOC collapse/expand ─── */
-  var toc = document.querySelector('[data-ga-toc]');
-  var tocToggle = document.querySelector('[data-ga-toc-toggle]');
-  if (toc && tocToggle) {
-    tocToggle.addEventListener('click', function () {
-      var open = toc.getAttribute('data-open') === 'true';
-      toc.setAttribute('data-open', open ? 'false' : 'true');
-      tocToggle.setAttribute('aria-expanded', open ? 'false' : 'true');
-    });
-  }
-
-  /* ─── On-page nav active-state, tracks the heading currently in view ─── */
-  var tocLinks = Array.prototype.slice.call(document.querySelectorAll('[data-ga-toc] a[href^="#"]'));
-  var headings = tocLinks
-    .map(function (link) {
-      var id = link.getAttribute('href').slice(1);
-      return document.getElementById(id);
-    })
-    .filter(Boolean);
-
-  if (headings.length && 'IntersectionObserver' in window) {
-    var headingObserver = new IntersectionObserver(function (entries) {
-      entries.forEach(function (entry) {
-        if (!entry.isIntersecting) return;
-        var id = entry.target.id;
-        tocLinks.forEach(function (link) {
-          link.classList.toggle('is-active', link.getAttribute('href') === '#' + id);
-        });
-      });
-    }, { rootMargin: '-15% 0px -70% 0px', threshold: 0 });
-
-    headings.forEach(function (h) { headingObserver.observe(h); });
-  }
+  /* ─── TOC link clicks: smooth-scroll accounting for the fixed navbar ───
+     A native anchor jump (or Lenis's own `anchors: true` handling,
+     since this site runs Lenis sitewide) would land a heading flush
+     against the viewport top, underneath the fixed .dgs-header, UNLESS
+     the target has `scroll-margin-top` set. The static template's own
+     headings get that via `.dgs-ga-body h2/h3` in dgs-growth-article.css
+     — but a GHL post's `.dgs-blog-render` headings are styled by a
+     <style> block pasted per-post directly in GHL's editor (confirmed
+     on the live page), outside this repo, with no such offset. Rather
+     than depend on every post's own pasted CSS getting this right,
+     this computes the offset in JS — 104px / 6.5rem matches the exact
+     value already used for the same purpose sitewide (this file's own
+     .dgs-ga-body h2/h3, plus dgs-legal.css/dgs-event-detail.css/
+     dgs-playbook-detail.css). Capture phase + stopPropagation for the
+     same reason as the Back to Top fix above: without it, Lenis's own
+     anchor handling could act on the same click first and scroll to
+     the raw (un-offset) position before this ever runs. */
+  var TOC_SCROLL_OFFSET = 104;
+  document.addEventListener('click', function (e) {
+    var link = e.target.closest && e.target.closest('[data-ga-toc] a[href^="#"]');
+    if (!link) return;
+    var target = document.getElementById(link.getAttribute('href').slice(1));
+    if (!target) return;
+    e.preventDefault();
+    e.stopPropagation();
+    var y = target.getBoundingClientRect().top + window.scrollY - TOC_SCROLL_OFFSET;
+    window.scrollTo({ top: y, behavior: 'smooth' });
+  }, true);
 
   }); // whenReady
 })();
