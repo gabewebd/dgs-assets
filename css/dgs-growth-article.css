@@ -1378,28 +1378,31 @@ body {
    so the :not(:has(...)) guard is required, not decorative: it keeps
    this fallback OFF entirely on any post that already ships one of
    them, so existing per-post styling is never touched. Checked against
-   all three known per-pillar wrapper classes (js/dgs-growth-article.js
+   all six known per-post wrapper classes (js/dgs-growth-article.js
    getGhlRender() reads the same list) — Learn posts use
-   .dgs-blog-render, Implement posts .dgs-checklist-template-page,
-   Connect posts .dgs-event-template-page. Missing the latter two here
-   previously meant this fallback's max-width:76ch/margin:0 auto fired
-   on every playbook/event post (neither ships .dgs-blog-render), double
-   -constraining #blogPostContent on top of that post's own per-post
-   max-width and squeezing the TOC+article grid below. */
-#blogPostContent:not(:has(.dgs-blog-render, .dgs-checklist-template-page, .dgs-event-template-page)) {
+   .dgs-blog-render, Connect posts .dgs-event-template-page, and within
+   Implement every post so far has used its own class:
+   .dgs-checklist-template-page, .dgs-playbook-template-page,
+   .dgs-compliance-template-page, .dgs-sop-template-page (confirmed live
+   on speedtoleadcode.html, compliancecalendar.html, and sop.html — same
+   double-constraining bug every time a class was missing here: this
+   fallback's max-width:76ch/margin:0 auto fired on top of the post's
+   own per-post max-width and squeezed the TOC+article grid below,
+   since it doesn't ship .dgs-blog-render either). */
+#blogPostContent:not(:has(.dgs-blog-render, .dgs-checklist-template-page, .dgs-event-template-page, .dgs-playbook-template-page, .dgs-compliance-template-page, .dgs-sop-template-page)) {
   font-family: var(--font-body);
   color: var(--ga-ink, #0A1F33);
   max-width: 76ch;
   margin: 0 auto;
 }
 
-#blogPostContent:not(:has(.dgs-blog-render, .dgs-checklist-template-page, .dgs-event-template-page)) > p {
+#blogPostContent:not(:has(.dgs-blog-render, .dgs-checklist-template-page, .dgs-event-template-page, .dgs-playbook-template-page, .dgs-compliance-template-page, .dgs-sop-template-page)) > p {
   font-size: 1.1rem;
   line-height: 1.85;
   color: #2A3B4D;
 }
 
-#blogPostContent:not(:has(.dgs-blog-render, .dgs-checklist-template-page, .dgs-event-template-page)) > h2 {
+#blogPostContent:not(:has(.dgs-blog-render, .dgs-checklist-template-page, .dgs-event-template-page, .dgs-playbook-template-page, .dgs-compliance-template-page, .dgs-sop-template-page)) > h2 {
   font-family: var(--font-heading);
   font-weight: 800;
   font-size: clamp(1.8rem, 3.2vw, 2.4rem);
@@ -1467,3 +1470,4 @@ body {
     border-radius: var(--radius-md, 10px) !important;
   }
 }
+
