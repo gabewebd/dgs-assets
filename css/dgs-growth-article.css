@@ -1012,12 +1012,19 @@ body {
   margin-left: calc(50% - 50vw);
   margin-right: calc(50% - 50vw);
   overflow: hidden;
-  /* Same glow as .dgs-ga-hero::before (upper-center radial fade, same
-     teal/blue stops) — layered on top of the solid navy in this one
-     background instead of a second pseudo-element, since ::after would
-     paint above the real hero content instead of behind it. */
+  /* Same glow as .dgs-ga-hero::before — same teal/blue stops AND the
+     same fixed 56vw x 22rem ellipse size/position (50% / -18%), so the
+     blob reads at the same scale here as on the static template,
+     rather than a bare `circle` whose implicit (farthest-corner) size
+     stretches to fit THIS hero's own auto-height box — a box that's
+     usually much taller than .dgs-ga-hero's fixed padding, which
+     diluted the color across a much bigger area and was the actual
+     "different shade" the live GHL hero showed next to the static
+     pages. Layered on top of the solid navy in this one background
+     instead of a second pseudo-element, since ::after would paint
+     above the real hero content instead of behind it. */
   background:
-    radial-gradient(circle at 50% 0%, rgba(0, 179, 159, 0.18) 0%, rgba(45, 127, 249, 0.08) 45%, transparent 75%),
+    radial-gradient(ellipse 56vw 22rem at 50% -18%, rgba(0, 179, 159, 0.18) 0%, rgba(45, 127, 249, 0.08) 45%, transparent 75%),
     var(--ga-navy, #0A1F33);
 }
 
@@ -1302,22 +1309,21 @@ body {
 
 .blog-html-container-single .blog-content-blog-image {
   width: 100% !important;
-  aspect-ratio: 16 / 8.5;
+  aspect-ratio: auto;
+  height: auto;
   object-fit: cover !important;
   border-radius: var(--radius-lg, 14px) !important;
   display: block;
   box-shadow: 0 24px 60px rgba(10, 31, 51, 0.18);
 }
 
-/* Desktop: natural aspect ratio instead of the mobile banner crop
-   (matches .dgs-event-hero-cover img — a large hero-column image reads
-   better at its own proportions than forced into a wide/short crop),
-   and a translucent white border instead of a shadow, since it now
-   sits directly on the navy hero rather than overlapping onto white. */
+/* Desktop: translucent white border instead of a shadow, since the
+   image now sits directly on the navy hero rather than overlapping
+   onto white (matches .dgs-event-hero-cover img). Natural aspect ratio
+   applies at every size now (see the base rule above) so the image is
+   never force-cropped into a short banner on mobile. */
 @media (min-width: 960px) {
   .blog-html-container-single .blog-content-blog-image {
-    aspect-ratio: auto;
-    height: auto;
     border-radius: var(--radius-xl, 10px) !important;
     box-shadow: none;
     border: 1px solid rgba(255, 255, 255, 0.14);
