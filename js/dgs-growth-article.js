@@ -50,21 +50,25 @@
   /* ─── The real per-post content wrapper, across every Growth Hub pillar ───
      Every native GHL post's rich body is authored as a "Custom Code"
      element in the blog editor, and whoever wrote that post's HTML wraps
-     it in one class of their own choosing — confirmed live to differ by
-     pillar, not a single fixed name: Learn posts (regular articles) use
-     `.dgs-blog-render`, Implement posts (playbooks/checklists) use
-     `.dgs-checklist-template-page`, Connect posts (events) use
-     `.dgs-event-template-page`. buildToc() and the Back to Top fix below
+     it in one class of their own choosing — confirmed live to differ not
+     just by pillar but by POST, not a single fixed name: Learn posts
+     (regular articles) use `.dgs-blog-render`, Connect posts (events)
+     use `.dgs-event-template-page` — and within Implement, a checklist
+     post uses `.dgs-checklist-template-page` while a playbook post uses
+     a DIFFERENT class, `.dgs-playbook-template-page` (confirmed live on
+     speedtoleadcode.html: its TOC/Back to Top silently did nothing
+     until this class was added here too, same bug class as the
+     original checklist/event miss, just one pillar wasn't actually
+     internally consistent). buildToc() and the Back to Top fix below
      both need "whichever of these actually exists on this post" — a
-     single query for one specific class (the original bug: TOC/Back to
-     Top silently did nothing on playbooks and events, since neither
-     wrapper is named `.dgs-blog-render`). Listed explicitly rather than
+     single query for one specific class. Listed explicitly rather than
      matched by a generic heuristic (e.g. "the code-embed-container's
      first non-style child") to stay consistent with this file's existing
-     pattern of targeting known, stable hooks — add a new class here if a
-     future pillar introduces one. */
+     pattern of targeting known, stable hooks — add a new class here
+     the moment any future post introduces one, since there's no way to
+     predict the name in advance. */
   function getGhlRender() {
-    return document.querySelector('.dgs-blog-render, .dgs-checklist-template-page, .dgs-event-template-page');
+    return document.querySelector('.dgs-blog-render, .dgs-checklist-template-page, .dgs-event-template-page, .dgs-playbook-template-page');
   }
 
   /* ─── Smooth-scroll helper, routed through Lenis when it's active ───
