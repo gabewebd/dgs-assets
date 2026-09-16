@@ -1012,19 +1012,22 @@ body {
   margin-left: calc(50% - 50vw);
   margin-right: calc(50% - 50vw);
   overflow: hidden;
-  /* Same glow as .dgs-ga-hero::before — same teal/blue stops AND the
-     same fixed 56vw x 22rem ellipse size/position (50% / -18%), so the
-     blob reads at the same scale here as on the static template,
-     rather than a bare `circle` whose implicit (farthest-corner) size
-     stretches to fit THIS hero's own auto-height box — a box that's
-     usually much taller than .dgs-ga-hero's fixed padding, which
-     diluted the color across a much bigger area and was the actual
-     "different shade" the live GHL hero showed next to the static
-     pages. Layered on top of the solid navy in this one background
-     instead of a second pseudo-element, since ::after would paint
-     above the real hero content instead of behind it. */
+  /* Same glow as .dgs-ga-hero::before — same teal/blue stops and
+     position (50% / -18%), same fixed (viewport-independent) ellipse
+     technique rather than a bare `circle` whose implicit
+     (farthest-corner) size stretches to fit THIS hero's own
+     auto-height box. Sized bigger than the static template's own
+     56vw x 22rem (84vw x 34rem, ~1.5x): this hero's box is usually
+     much taller (it includes the featured image, unlike .dgs-ga-hero
+     which is text-only), so a same-size blob reads proportionally
+     smaller/more washed out here than it does on the shorter static
+     hero — enlarging it is what actually keeps its VISUAL prominence
+     comparable, not just its absolute stats. Layered on top of the
+     solid navy in this one background instead of a second
+     pseudo-element, since ::after would paint above the real hero
+     content instead of behind it. */
   background:
-    radial-gradient(ellipse 56vw 22rem at 50% -18%, rgba(0, 179, 159, 0.18) 0%, rgba(45, 127, 249, 0.08) 45%, transparent 75%),
+    radial-gradient(ellipse 84vw 34rem at 50% -18%, rgba(0, 179, 159, 0.18) 0%, rgba(45, 127, 249, 0.08) 45%, transparent 75%),
     var(--ga-navy, #0A1F33);
 }
 
@@ -1184,7 +1187,17 @@ body {
   margin: 0 !important;
   font-family: var(--font-heading) !important;
   font-weight: 800 !important;
-  font-size: clamp(2rem, 4.2vw, 3.1rem) !important;
+  /* var(--fs-h1), not .dgs-ga-title's own clamp(2rem, 4.2vw, 3.1rem):
+     on the static template, `.dgs-page h1 { font-size: var(--fs-h1) }`
+     (dgs-common.css) has HIGHER specificity than `.dgs-ga-title`'s own
+     (non-!important) font-size — one class+tag beats one class — so
+     `.dgs-ga-title`'s clamp is dead code there and every article H1
+     (including ai-readiness-test.html's) actually renders at
+     `--fs-h1: clamp(2.8rem, 6vw, 4.8rem)`, not its own smaller value.
+     Matching that real, larger, winning size here (this selector
+     already needs !important since GHL's own theme also targets this
+     element, so there's no equivalent specificity trap to fall into). */
+  font-size: var(--fs-h1) !important;
   line-height: 1.15 !important;
   letter-spacing: -0.02em !important;
   text-transform: none !important;
