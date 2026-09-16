@@ -1126,6 +1126,19 @@ body {
 .blog-html-container-single > .blog-back-button {
   order: 1;
   grid-row: 1;
+  /* grid-column pinned alongside grid-row: ::before is explicitly
+     `grid-column: 1 / -1`, so it already occupies column 1 at every
+     row it spans. Left on `auto`, this item's column has to be
+     auto-placed, and auto-placement treats that cell as taken (it
+     never overlaps an explicitly-placed sibling) and pushes the item
+     into a brand-new implicit column 2 instead — exactly what was
+     shifting the whole mobile hero (text + image) into a ~50%-width
+     right-hand column with a blank column 1 gap. Explicit `column: 1`
+     is placement, not auto-placement, so it's allowed to sit in the
+     same cell as ::before (which is just a painted background, not a
+     layout obstacle) — matching what the desktop 2-column block below
+     already does for the very same reason. */
+  grid-column: 1;
   display: flex !important;
   align-items: center;
   gap: 0.4rem;
@@ -1158,6 +1171,7 @@ body {
 .blog-html-container-single > .blog-content-title {
   order: 3;
   grid-row: 3;
+  grid-column: 1;
   padding-top: 0 !important;
   padding-bottom: 1.75rem !important;
   margin: 0 !important;
@@ -1173,6 +1187,7 @@ body {
 .blog-html-container-single > .meta-section-1:has(.blog-date) {
   order: 4;
   grid-row: 4;
+  grid-column: 1;
   padding-top: 1.5rem !important;
   padding-bottom: 1.1rem !important;
   border-top: 1px solid rgba(255, 255, 255, 0.14);
@@ -1195,6 +1210,7 @@ body {
 .blog-html-container-single > .dgs-ga-dek {
   order: 5;
   grid-row: 5;
+  grid-column: 1;
   padding-bottom: 2.75rem !important;
 }
 
@@ -1210,6 +1226,7 @@ body {
 .blog-html-container-single > .blog-cover-image-container {
   order: 6;
   grid-row: 6;
+  grid-column: 1;
   max-width: 100%;
   margin: 0 auto 3rem !important;
   padding: 0 1rem;
@@ -1249,8 +1266,17 @@ body {
      `grid-row: 1 / 7` occupies rows 1-7 outright, so without this an
      auto-placed category gets skipped past that whole reserved block
      and lands in a new implicit row after the image instead of between
-     the back-link and the title. */
+     the back-link and the title. grid-column:1 pinned for the same
+     reason every sibling hero element now pins it too: ::before's
+     `grid-column: 1 / -1` already occupies column 1 at this row, so
+     auto-placement (triggered by leaving grid-column on `auto`) can't
+     use that cell and creates an implicit column 2 instead, shifting
+     the WHOLE hero (every explicitly-rowed item, plus the image) into
+     a ~50%-width right column. Explicit placement doesn't avoid
+     ::before the way auto-placement does, so this can safely share
+     the cell with it. */
   grid-row: 2;
+  grid-column: 1;
   padding-top: 0 !important;
   padding-bottom: 1.1rem !important;
 }
