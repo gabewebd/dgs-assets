@@ -234,8 +234,8 @@
 
 @media (min-width: 960px) {
   .dgs-ga-layout {
-    grid-template-columns: 240px 1fr;
-    gap: 4.5rem;
+    grid-template-columns: 260px 1fr;
+    gap: 3rem;
     align-items: start;
   }
 }
@@ -252,7 +252,7 @@
     position: sticky;
     top: 7.5rem;
     order: 0;
-    max-width: 240px;
+    max-width: 260px;
   }
 }
 
@@ -315,7 +315,7 @@
   border-left: 2px solid var(--ga-hairline);
   display: flex;
   flex-direction: column;
-  gap: 0.65rem;
+  gap: 1.15rem;
   max-width: 100%;
 }
 
@@ -1193,9 +1193,10 @@ body {
      template's own ACTUAL rendered size (`.dgs-page h1` outranks
      `.dgs-ga-title`'s own smaller clamp there by specificity, so
      --fs-h1 is what really wins on every article page). Trimmed ~15%
-     off each number afterward (hardcoded, not the var) since even that
-     matched size read a little large for this specific hero. */
-  font-size: clamp(2.4rem, 5.1vw, 4.1rem) !important;
+     off each number, then trimmed again (~10% further, user feedback
+     after seeing it live) since even the first pass still read large
+     for this specific hero. */
+  font-size: clamp(2.1rem, 4.6vw, 3.7rem) !important;
   line-height: 1.15 !important;
   letter-spacing: -0.02em !important;
   text-transform: none !important;
@@ -1266,17 +1267,17 @@ body {
   .blog-html-container-single > .blog-cover-image-container {
     grid-column: 2;
     grid-row: 1 / 6;
-    /* align-self: start (not center) + real top/bottom padding, rather
-       than trusting the grid to center it: the row span's height comes
-       from column 1's text stack, so centering alone put the image
-       flush against the nav whenever that text stack was short. The
-       padding here is now itself the tallest thing in rows 1-5, so it
-       sets the hero's height (grid tracks size to fit their content) —
-       this is what actually "grows" the hero, not a height/min-height
-       on the hero itself. */
-    align-self: start;
+    /* align-self: center (user feedback: was `start`, which pinned the
+       image flush against the nav whenever the text column was short —
+       wanted it vertically centered in the row instead). Symmetric
+       top/bottom padding, not the old 7.5rem/5rem split: with `start`
+       that asymmetry only mattered when the image was the row's tallest
+       occupant (in which case align-self is a no-op), but with `center`
+       it would visibly bias the image toward whichever edge got the
+       smaller number, undoing the centering it's meant to achieve. */
+    align-self: center;
     margin: 0;
-    padding: 7.5rem 3.5rem 5rem 0;
+    padding: 4rem 3.5rem 4rem 0;
   }
 }
 
@@ -1402,32 +1403,40 @@ body {
 
 @media (min-width: 960px) {
   .blog-html-container-single :has(> .dgs-ga-toc) {
-    grid-template-columns: 240px 1fr;
-    gap: 4.5rem;
+    grid-template-columns: 260px 1fr;
+    gap: 3rem;
     align-items: start;
   }
 }
 
-/* Fallback typography for article HTML pasted WITHOUT its own
-   .dgs-blog-render wrapper/styles. #blogPostContent is an ID, which
-   would outrank .dgs-blog-render's own (non-!important) max-width/
-   margin, so the :not(:has(...)) guard is required, not decorative:
-   it keeps this fallback OFF entirely on any post that already ships
-   .dgs-blog-render, so existing per-post styling is never touched. */
-#blogPostContent:not(:has(.dgs-blog-render)) {
+/* Fallback typography for article HTML pasted WITHOUT its own known
+   content wrapper/styles. #blogPostContent is an ID, which would
+   outrank any of these wrappers' own (non-!important) max-width/margin,
+   so the :not(:has(...)) guard is required, not decorative: it keeps
+   this fallback OFF entirely on any post that already ships one of
+   them, so existing per-post styling is never touched. Checked against
+   all three known per-pillar wrapper classes (js/dgs-growth-article.js
+   getGhlRender() reads the same list) — Learn posts use
+   .dgs-blog-render, Implement posts .dgs-checklist-template-page,
+   Connect posts .dgs-event-template-page. Missing the latter two here
+   previously meant this fallback's max-width:76ch/margin:0 auto fired
+   on every playbook/event post (neither ships .dgs-blog-render), double
+   -constraining #blogPostContent on top of that post's own per-post
+   max-width and squeezing the TOC+article grid below. */
+#blogPostContent:not(:has(.dgs-blog-render, .dgs-checklist-template-page, .dgs-event-template-page)) {
   font-family: var(--font-body);
   color: var(--ga-ink, #0A1F33);
   max-width: 76ch;
   margin: 0 auto;
 }
 
-#blogPostContent:not(:has(.dgs-blog-render)) > p {
+#blogPostContent:not(:has(.dgs-blog-render, .dgs-checklist-template-page, .dgs-event-template-page)) > p {
   font-size: 1.1rem;
   line-height: 1.85;
   color: #2A3B4D;
 }
 
-#blogPostContent:not(:has(.dgs-blog-render)) > h2 {
+#blogPostContent:not(:has(.dgs-blog-render, .dgs-checklist-template-page, .dgs-event-template-page)) > h2 {
   font-family: var(--font-heading);
   font-weight: 800;
   font-size: clamp(1.8rem, 3.2vw, 2.4rem);

@@ -47,6 +47,26 @@
     return document.querySelector('.dgs-ga-body') || document.getElementById('blogPostContent');
   }
 
+  /* ─── The real per-post content wrapper, across every Growth Hub pillar ───
+     Every native GHL post's rich body is authored as a "Custom Code"
+     element in the blog editor, and whoever wrote that post's HTML wraps
+     it in one class of their own choosing — confirmed live to differ by
+     pillar, not a single fixed name: Learn posts (regular articles) use
+     `.dgs-blog-render`, Implement posts (playbooks/checklists) use
+     `.dgs-checklist-template-page`, Connect posts (events) use
+     `.dgs-event-template-page`. buildToc() and the Back to Top fix below
+     both need "whichever of these actually exists on this post" — a
+     single query for one specific class (the original bug: TOC/Back to
+     Top silently did nothing on playbooks and events, since neither
+     wrapper is named `.dgs-blog-render`). Listed explicitly rather than
+     matched by a generic heuristic (e.g. "the code-embed-container's
+     first non-style child") to stay consistent with this file's existing
+     pattern of targeting known, stable hooks — add a new class here if a
+     future pillar introduces one. */
+  function getGhlRender() {
+    return document.querySelector('.dgs-blog-render, .dgs-checklist-template-page, .dgs-event-template-page');
+  }
+
   /* The bar's own markup, `<div class="dgs-ga-progress" data-ga-progress
      aria-hidden="true"></div>`, is hand-authored directly in the static
      template's HTML — but a native GHL post's page (built entirely in
@@ -91,30 +111,59 @@
     });
   }
 
+  /* Shared with the TOC link-click handler further down — declared here
+     (not just there) so both can reference the same constant; `var`
+     hoists the declaration but not the assignment, and this one runs
+     first in source order, so it's already assigned by the time either
+     click handler actually fires (both only run later, on a real
+     click). 104px / 6.5rem matches the offset already used sitewide for
+     the fixed header (.dgs-ga-body h2/h3 scroll-margin-top, plus
+     dgs-legal.css/dgs-event-detail.css/dgs-playbook-detail.css). */
+  var TOC_SCROLL_OFFSET = 104;
+
   /* ─── GHL: fix the native "Back to Top" button ───
      GHL's own widget renders `.hl-blog-content-back-to-top-container
      > button.back-to-top` — a bare <button> with no href/onclick; its
      scroll behavior depends entirely on GHL's own Vue click binding.
      A previous fix here used a bubble-phase `document` listener, which
      only runs AFTER any handler GHL itself attached directly to the
-     button. That explains the reported symptom (lands on a heading
-     instead of page top, as if something else is driving the scroll):
-     GHL's own handler runs first and, if it calls stopPropagation()
-     (routine in framework-generated handlers), our bubble-phase
-     listener never even fires — GHL's own behavior is the only thing
-     that ran. Capture phase (the `true` 3rd arg) runs BEFORE that
-     handler instead of after it, and stopPropagation() here then
-     blocks GHL's handler from running at all, so ours is the only
-     scroll that happens. Delegation (not a direct listener on the
-     button) still means no MutationObserver is needed — Vue can
-     re-render the button underneath this with no effect, since we
-     never hold a reference to it, only check what was clicked. */
+     button. That explains the original reported symptom (lands on some
+     other heading, as if something else is driving the scroll): GHL's
+     own handler runs first and, if it calls stopPropagation() (routine
+     in framework-generated handlers), our bubble-phase listener never
+     even fires — GHL's own behavior is the only thing that ran. Capture
+     phase (the `true` 3rd arg) runs BEFORE that handler instead of
+     after it, and stopPropagation() here then blocks GHL's handler from
+     running at all, so ours is the only scroll that happens. Delegation
+     (not a direct listener on the button) still means no
+     MutationObserver is needed — Vue can re-render the button
+     underneath this with no effect, since we never hold a reference to
+     it, only check what was clicked.
+
+     Destination is the article's FIRST heading, not window top (user
+     feedback: this button lives at the bottom of the article, and the
+     desired behavior is "back to the top of the article", not all the
+     way past the hero) — same element buildToc() below reads, so this
+     always agrees with whatever the on-page nav's first entry points
+     to. Falls back to window top only if the post has no headings at
+     all for buildToc() to have found either. */
   document.addEventListener('click', function (e) {
     var btn = e.target.closest && e.target.closest('.hl-blog-content-back-to-top-container .back-to-top');
     if (!btn) return;
     e.preventDefault();
     e.stopPropagation();
-    window.scrollTo({ top: 0, behavior: 'smooth' });
+    var articleEl = getGhlRender() || getArticleEl();
+    /* h2 only, matching exactly what buildToc() below reads to build the
+       "On This Page" nav — so this always lands on the same section its
+       own first entry points to, not some other heading level it never
+       listed. */
+    var firstHeading = articleEl && articleEl.querySelector('h2');
+    if (firstHeading) {
+      var y = firstHeading.getBoundingClientRect().top + window.scrollY - TOC_SCROLL_OFFSET;
+      window.scrollTo({ top: y, behavior: 'smooth' });
+    } else {
+      window.scrollTo({ top: 0, behavior: 'smooth' });
+    }
   }, true);
 
   var ticking = false;
@@ -206,28 +255,29 @@
     }
   }
 
-  /* ─── GHL: build the on-page nav from .dgs-blog-render's headings ───
+  /* ─── GHL: build the on-page nav from the post body's headings ───
      The static article template hand-authors .dgs-ga-toc with its links
-     and heading ids per post. A GHL post's .dgs-blog-render body varies
-     every time, so instead of hand-authoring that html, this reads
-     whatever h2 headings actually exist and builds the same markup.
-     Guarded to a GHL post specifically (.dgs-blog-render present) with
-     no hand-authored sidebar already there, so the static template's
-     own .dgs-ga-toc is never touched or duplicated.
+     and heading ids per post. A GHL post's real content wrapper (see
+     getGhlRender() above) varies every time, so instead of hand-authoring
+     that html, this reads whatever h2 headings actually exist inside it
+     and builds the same markup. Guarded to a GHL post specifically
+     (getGhlRender() found something) with no hand-authored sidebar
+     already there, so the static template's own .dgs-ga-toc is never
+     touched or duplicated.
 
      This used to run once, standalone, at script level — confirmed
-     live that it never actually built anything on a real GHL post:
-     .dgs-blog-render's own rich-text body (with its 6 real h2s) lands
-     in the DOM on a separate, later timeline from the hero elements
+     live that it never actually built anything on a real GHL post: the
+     post's own rich-text body (with its real h2s) lands in the DOM on a
+     separate, later timeline from the hero elements
      insertDek()/renameBackButton() react to, so by the time this ran,
-     .dgs-blog-render either didn't exist yet or GHL was still filling
+     the content wrapper either didn't exist yet or GHL was still filling
      it in. Now called from the same body-level MutationObserver as
      insertDek/renameBackButton, for the identical reason: it re-checks
      every time GHL touches the DOM instead of gambling on one exact
      moment, and its own guard (`!document.querySelector('.dgs-ga-toc')`)
      keeps it a no-op once the sidebar exists. */
   function buildToc() {
-    var ghlRender = document.querySelector('.dgs-blog-render');
+    var ghlRender = getGhlRender();
     if (!ghlRender || document.querySelector('.dgs-ga-toc')) return;
     var ghlHeadings = Array.prototype.slice.call(ghlRender.querySelectorAll('h2'));
     if (!ghlHeadings.length) return;
@@ -343,14 +393,11 @@
      <style> block pasted per-post directly in GHL's editor (confirmed
      on the live page), outside this repo, with no such offset. Rather
      than depend on every post's own pasted CSS getting this right,
-     this computes the offset in JS — 104px / 6.5rem matches the exact
-     value already used for the same purpose sitewide (this file's own
-     .dgs-ga-body h2/h3, plus dgs-legal.css/dgs-event-detail.css/
-     dgs-playbook-detail.css). Capture phase + stopPropagation for the
-     same reason as the Back to Top fix above: without it, Lenis's own
-     anchor handling could act on the same click first and scroll to
-     the raw (un-offset) position before this ever runs. */
-  var TOC_SCROLL_OFFSET = 104;
+     this computes the offset in JS, reusing the same TOC_SCROLL_OFFSET
+     the Back to Top fix above declares. Capture phase + stopPropagation
+     for the same reason as that fix: without it, Lenis's own anchor
+     handling could act on the same click first and scroll to the raw
+     (un-offset) position before this ever runs. */
   document.addEventListener('click', function (e) {
     var link = e.target.closest && e.target.closest('[data-ga-toc] a[href^="#"]');
     if (!link) return;
