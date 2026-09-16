@@ -84,10 +84,35 @@
       ghlHero.insertBefore(dek, ghlTitle.nextSibling);
     }
   }
+  /* ─── GHL: relabel the native "Back to Blog" link ───
+     GHL's blog widget hardcodes this link's visible text and
+     aria-label; our HTML/CSS never touches it, so it can only be
+     changed from here. Rewrites text nodes in place (leaving the arrow
+     icon element alone) rather than replacing innerHTML, and only the
+     nodes that still say "Back to Blog" so re-runs are no-ops. Reuses
+     insertDek's own MutationObserver/re-query strategy for the same
+     reason: GHL's Vue hydration can replace this subtree wholesale. */
+  function renameBackButton() {
+    var backBtn = document.querySelector('.blog-html-container-single > .blog-back-button');
+    if (!backBtn) return;
+    if (backBtn.getAttribute('aria-label') !== 'Back to Growth Hub') {
+      backBtn.setAttribute('aria-label', 'Back to Growth Hub');
+    }
+    Array.prototype.forEach.call(backBtn.childNodes, function (node) {
+      if (node.nodeType === Node.TEXT_NODE && /back to blog/i.test(node.textContent)) {
+        node.textContent = node.textContent.replace(/back to blog/i, 'Back to Growth Hub');
+      }
+    });
+  }
+
+  function syncGhlHero() {
+    insertDek();
+    renameBackButton();
+  }
   var ghlHeroEl = document.querySelector('.blog-html-container-single');
   if (ghlHeroEl) {
-    insertDek();
-    new MutationObserver(insertDek).observe(document.body, { childList: true, subtree: true });
+    syncGhlHero();
+    new MutationObserver(syncGhlHero).observe(document.body, { childList: true, subtree: true });
   }
 
   /* ─── GHL: build the on-page nav from .dgs-blog-render's headings ───
