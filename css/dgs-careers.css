@@ -784,6 +784,7 @@
   align-items: center;
   gap: 0.5rem;
   margin-top: 3rem;
+  margin-bottom: 3rem;
 }
 
 .hl-blog-post-home .pagination-button {

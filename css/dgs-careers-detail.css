@@ -542,41 +542,56 @@
   display: none;
 }
 
-/* js/dgs-careers.js's moveBackToTop() reparents this element (the
-   REAL native node, never a clone) to be the last child of .blog-html
-   — it's no longer a sibling of it. Styled here for that position:
-   part of the article's own white background (inherited, no longer
-   needs its own), centered, with a hairline divider separating it
-   from the content above. */
-.blog-html-container-single > .blog-html > .hl-blog-content-back-to-top-container {
+/* Stays in its REAL native position — a sibling of .blog-html, direct
+   child of .blog-html-container-single (never reparented into
+   #blogPostContent; see js/dgs-careers.js's header comment for why
+   that broke it). Made to visually belong to the article purely with
+   CSS: white background (its own, since it's outside .blog-html now)
+   with zero top margin so there's no visible gap/seam between the
+   white article body ending and this starting, then the same
+   840px/0-1rem measure as .dgs-career-post so its content lines up on
+   the same left/right edges as the rest of the article. */
+.blog-html-container-single > .hl-blog-content-back-to-top-container {
   width: 100%;
   box-sizing: border-box;
-  text-align: center;
-  margin-top: 2.5rem;
-  padding: 1.75rem 0 0;
-  border-top: 1px solid var(--car-hairline);
+  background-color: #ffffff !important;
+  margin: 0;
+  padding: 1.75rem 1rem 6rem;
 }
 
-.blog-html-container-single > .blog-html > .hl-blog-content-back-to-top-container .back-to-top {
+@media (min-width: 768px) {
+  .blog-html-container-single > .hl-blog-content-back-to-top-container {
+    padding-left: 0;
+    padding-right: 0;
+  }
+}
+
+.blog-html-container-single > .hl-blog-content-back-to-top-container .back-to-top {
   display: inline-block;
+  max-width: 840px;
+  margin: 0 auto;
+  width: 100%;
+  text-align: center;
+  padding-top: 1.75rem !important;
+  border-top: 1px solid var(--car-hairline);
   font-family: var(--font-body) !important;
   font-size: 0.9rem !important;
   font-weight: 600 !important;
   color: var(--car-teal) !important;
   background: none !important;
   background-color: transparent !important;
-  border: none !important;
+  border-left: none !important;
+  border-right: none !important;
+  border-bottom: none !important;
   outline: none !important;
   box-shadow: none !important;
   border-radius: 0 !important;
   -webkit-appearance: none !important;
   appearance: none !important;
-  padding: 0 !important;
-  margin: 0 !important;
   cursor: pointer;
 }
 
-.blog-html-container-single > .blog-html > .hl-blog-content-back-to-top-container .back-to-top:hover {
+.blog-html-container-single > .hl-blog-content-back-to-top-container .back-to-top:hover {
   text-decoration: underline;
 }
 
