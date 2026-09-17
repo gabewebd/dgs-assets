@@ -1,63 +1,472 @@
-
-
 /* ============================================================
-   INLINE STYLES EXTRACTED FROM HTML (migrated from style="" attrs)
+   DGS CAREERS — DETAIL TEMPLATE (career-blog.html)
+   ------------------------------------------------------------
+   Styles the NATIVE GHL Blog Post widget (Careers jobs are a GHL
+   blog channel — confirmed live, 2026-09-16 saved copy of a
+   published job posting: the widget renders
+   .blog-html-container-single > .blog-back-button /
+   .meta-section-1(.blog-category) / .blog-content-title /
+   .meta-section-1(.blog-date) / .blog-cover-image-container /
+   .blog-html#blogPostContent / .blog-tags /
+   .hl-blog-content-back-to-top-container) to look like the DGS
+   Careers Detail design instead of GHL's default blog-post look.
+   No DOM is rebuilt — every selector below targets a real,
+   confirmed class or id. Same technique family as
+   css/dgs-growth-article.css (native-slot restyling, `order` for
+   visual reordering, JS-inserted real content for fields GHL has
+   no native slot for), kept in its own file per project convention
+   (isolated to Careers, dgs-growth-article.css untouched).
+
+   IMPORTANT — Careers detail hero is SINGLE COLUMN, NO IMAGE:
+   .blog-cover-image-container is always empty on a career posting
+   (confirmed live) and is hidden outright below, unlike the Growth
+   Hub article hero's 2-column grid+image. This is deliberate, not
+   an oversight — see the project brief's explicit "no featured
+   image, no fake image column" requirement.
    ============================================================ */
-.dgs-il-642ac55600 {
-  padding: 9rem 0 3.5rem !important;
-  background: #0A1F33 !important;
-  color: #ffffff !important;
+
+/* :root (not just a scoped class) so --car-* resolves even before
+   js/careers.js has a chance to add class="dgs-car" to <main> — same
+   reasoning already documented for --ga-* in dgs-growth-article.css:
+   a var() that fails to resolve on an inherited property like `color`
+   falls back to the inherited value, not an error, so it silently
+   renders invisible text if this were scoped and the ancestor class
+   were ever missing. */
+:root {
+  --car-navy: #0A1F33;
+  --car-teal: #00B39F;
+  --car-ink: #0A1F33;
+  --car-muted: #5B6B7C;
+  --car-hairline: rgba(10, 31, 51, 0.1);
+  --car-surface: #F7F9FA;
 }
 
-.dgs-il-d260492821 {
-  display: block !important;
-  color: var(--action-teal) !important;
+/* ---------------------------------------------------------
+   1. Reading progress bar (reused pattern from Growth Hub,
+   own markup/class so dgs-growth-article.css is never touched)
+--------------------------------------------------------- */
+.dgs-car-progress {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 0%;
+  height: 3px;
+  z-index: 1001;
+  background: var(--car-teal);
+  transition: width 0.1s linear;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .dgs-car-progress {
+    transition: none;
+  }
+}
+
+/* ---------------------------------------------------------
+   2. Layout containment
+   GHL's blog-content section wrapper can carry a max-width/margin
+   that fights a single centered column; reset it the same way
+   dgs-growth-article.css does for the equivalent wrapper.
+--------------------------------------------------------- */
+.dgs-ghl-blog-content {
+  max-width: 100% !important;
+  margin: 0 !important;
+}
+
+.blog-html-container-single {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr);
+  max-width: 48rem;
+  margin: 0 auto;
+}
+
+/* ---------------------------------------------------------
+   3. Hero band (back-link, category, title, meta line, description)
+   Native render order is: image, title, category, date, content.
+   Target order: back-link, category, title, meta(location/type),
+   description — single navy band, no image ever.
+--------------------------------------------------------- */
+.blog-html-container-single::before {
+  content: '';
+  grid-column: 1;
+  grid-row: 1 / 6;
+  width: 100vw;
+  margin-left: calc(50% - 50vw);
+  margin-right: calc(50% - 50vw);
+  background: var(--car-navy);
+}
+
+.blog-html-container-single > .blog-back-button,
+.blog-html-container-single > .meta-section-1:has(.blog-category),
+.blog-html-container-single > .blog-content-title,
+.blog-html-container-single > .dgs-car-meta-line,
+.blog-html-container-single > .dgs-car-dek {
+  box-sizing: border-box;
+  grid-column: 1;
+  padding-left: 1rem;
+  padding-right: 1rem;
+}
+
+@media (min-width: 768px) {
+  .blog-html-container-single > .blog-back-button,
+  .blog-html-container-single > .meta-section-1:has(.blog-category),
+  .blog-html-container-single > .blog-content-title,
+  .blog-html-container-single > .dgs-car-meta-line,
+  .blog-html-container-single > .dgs-car-dek {
+    padding-left: 0;
+    padding-right: 0;
+  }
+}
+
+.blog-html-container-single > .blog-back-button {
+  order: 1;
+  grid-row: 1;
+  display: flex !important;
+  align-items: center;
+  gap: 0.4rem;
+  padding-top: 8.5rem !important;
+  padding-bottom: 1.75rem !important;
+  font-family: var(--font-body) !important;
+  font-size: 0.82rem !important;
   font-weight: 600 !important;
+  color: rgba(255, 255, 255, 0.65) !important;
   text-decoration: none !important;
-  margin-bottom: 1.75rem !important;
+  margin-top: 0 !important;
+  cursor: pointer;
 }
 
-.dgs-il-7e617631ae {
-  margin-top: 0.75rem !important;
+.blog-html-container-single > .blog-back-button:hover {
+  color: var(--car-teal) !important;
+}
+
+/* GHL's default back-arrow renders blank without Font Awesome loaded
+   (same fix as dgs-growth-article.css) — swap for a plain glyph. */
+.blog-html-container-single > .blog-back-button .blog-left-arrow {
+  margin-right: 0.3rem !important;
+}
+
+.blog-html-container-single > .blog-back-button .blog-left-arrow::before {
+  content: "\2190" !important;
+  font-family: var(--font-body) !important;
+}
+
+.blog-html-container-single > .meta-section-1:has(.blog-category) {
+  order: 2;
+  grid-row: 2;
+  padding-top: 0 !important;
+  padding-bottom: 1rem !important;
+}
+
+.blog-html-container-single .blog-category,
+.blog-html-container-single .blog-category a {
+  display: inline-block;
+  font-family: var(--font-body) !important;
+  font-size: 0.72rem !important;
+  font-weight: 700 !important;
+  letter-spacing: 0.14em !important;
+  text-transform: uppercase !important;
+  color: var(--car-teal) !important;
+  text-decoration: none !important;
+}
+
+.blog-html-container-single > .blog-content-title {
+  order: 3;
+  grid-row: 3;
+  padding-top: 0 !important;
+  padding-bottom: 1.25rem !important;
+  margin: 0 !important;
+  font-family: var(--font-heading) !important;
+  font-weight: 800 !important;
+  font-size: clamp(2rem, 4.2vw, 3.2rem) !important;
+  line-height: 1.15 !important;
+  letter-spacing: -0.02em !important;
+  text-transform: none !important;
   color: #ffffff !important;
-  font-size: clamp(2.2rem, 4vw, 3.4rem) !important;
 }
 
-.dgs-il-621408cb65 {
-  margin-top: 1.25rem !important;
-  font-size: 1.05rem !important;
+/* Meta line (Location · Employment Type): a real element
+   js/careers.js relocates from the job's own custom-code content
+   (.dgs-career-post > .dgs-career-meta, authored once per posting,
+   same mechanism the lead paragraph/responsibilities already use —
+   GHL has no dedicated Location/Employment Type field to read
+   instead, confirmed against the live posting) up into the hero. */
+.blog-html-container-single > .dgs-car-meta-line {
+  order: 4;
+  grid-row: 4;
+  padding-top: 0 !important;
+  padding-bottom: 1rem !important;
+  margin: 0 !important;
+  font-family: var(--font-body) !important;
+  font-size: 0.88rem !important;
+  font-weight: 600 !important;
+  color: rgba(255, 255, 255, 0.72) !important;
+}
+
+/* Description: js/careers.js inserts this from the post's own
+   <meta name="description"> — same proven technique as .dgs-ga-dek
+   in dgs-growth-article.css (real per-post SEO data, not invented). */
+.blog-html-container-single > .dgs-car-dek {
+  order: 5;
+  grid-row: 5;
+  padding-top: 0 !important;
+  padding-bottom: 2.75rem !important;
+  margin: 0 !important;
+  font-family: var(--font-body) !important;
+  font-size: 1rem !important;
+  line-height: 1.6 !important;
   color: rgba(255, 255, 255, 0.78) !important;
 }
 
-.dgs-il-a747c5ebad {
-  padding: 4rem 0 6rem !important;
-  background: #ffffff !important;
-  color: #0A1F33 !important;
+/* Publish date + featured image: no static-design counterpart for a
+   job posting (see file header) — native elements are kept in the
+   DOM (never deleted) but not surfaced visually. */
+.blog-html-container-single > .meta-section-1:has(.blog-date),
+.blog-html-container-single > .blog-cover-image-container {
+  display: none !important;
 }
 
-.dgs-il-444c6cf9a2 {
-  font-size: 1.4rem !important;
+/* ---------------------------------------------------------
+   4. Job content (#blogPostContent) — semantic HTML the job author
+   pastes per posting: .dgs-career-post wrapping a lead paragraph,
+   H2 section headings (About the Role / Key Responsibilities /
+   Qualifications / Nice to Have / Benefits — whichever the author
+   actually included, never all of them by default), and
+   .dgs-career-list bullet lists. Real content, styled here instead
+   of via a per-post pasted <style> block (the previous live
+   pattern) so every future posting only needs to paste clean HTML.
+--------------------------------------------------------- */
+.blog-html-container-single > .blog-html {
+  order: 7;
+  grid-column: 1;
+  box-sizing: border-box;
+  width: 100%;
+  padding: 3rem 1rem 1rem;
 }
 
-.dgs-il-fdf48aefcd {
-  margin-top: 1rem !important;
-  padding-left: 1.25rem !important;
-  color: var(--text-dark-muted) !important;
-  line-height: 1.9 !important;
+@media (min-width: 768px) {
+  .blog-html-container-single > .blog-html {
+    padding: 3.5rem 0 1rem;
+  }
 }
 
-.dgs-il-7572487128 {
-  margin-top: 3rem !important;
-  font-size: 1.4rem !important;
+.dgs-career-post {
+  font-family: var(--font-body, 'Inter', sans-serif);
+  color: var(--car-ink);
+  line-height: 1.65;
 }
 
-.dgs-il-c4773bee52 {
-  margin-top: 3rem !important;
-  font-size: 1.05rem !important;
+.dgs-career-post .dgs-career-meta {
+  /* Hidden in place: js/careers.js relocates a clone into the hero
+     as .dgs-car-meta-line. The author-authored original stays here,
+     invisible, so the content is never duplicated on screen but is
+     still real markup a screen reader / no-JS fallback can reach. */
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  overflow: hidden;
+  clip: rect(0, 0, 0, 0);
+  white-space: nowrap;
 }
 
-.dgs-il-270edf33ee {
-  color: var(--action-teal) !important;
-  font-weight: 700 !important;
+.dgs-career-post .dgs-career-lead {
+  font-size: 1.1rem;
+  color: var(--car-ink);
+  line-height: 1.7;
+  margin: 0 0 2.5rem;
 }
 
+.dgs-career-post h2 {
+  font-family: var(--font-heading, 'Sora', sans-serif);
+  font-weight: 800;
+  font-size: 1.4rem;
+  color: var(--car-navy);
+  letter-spacing: -0.01em;
+  margin: 2.75rem 0 1rem;
+  scroll-margin-top: 6.5rem;
+}
+
+.dgs-career-post h2:first-of-type {
+  margin-top: 0;
+}
+
+.dgs-career-post p {
+  font-size: 1rem;
+  color: var(--car-muted);
+  line-height: 1.7;
+  margin: 0 0 1.25rem;
+}
+
+.dgs-career-list {
+  list-style: none;
+  margin: 0 0 1.5rem;
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 0.85rem;
+}
+
+.dgs-career-list li {
+  position: relative;
+  padding-left: 1.5rem;
+  color: var(--car-muted);
+  line-height: 1.6;
+}
+
+.dgs-career-list li::before {
+  content: '';
+  position: absolute;
+  left: 0;
+  top: 0.55em;
+  width: 7px;
+  height: 7px;
+  border-radius: 50%;
+  background-color: var(--car-teal);
+}
+
+/* Apply CTA: styled by class only — the author sets the real
+   destination (a GHL calendar/form link, /contact, etc.) per
+   posting. Never hardcoded here; see career-blog.html. */
+.dgs-career-apply-wrap {
+  margin: 2.75rem 0 0.5rem;
+}
+
+.dgs-career-apply-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.5rem;
+  font-family: var(--font-body, 'Inter', sans-serif);
+  font-size: 0.98rem;
+  font-weight: 700;
+  color: #ffffff !important;
+  text-decoration: none !important;
+  background: var(--car-teal);
+  padding: 0.85rem 1.75rem;
+  border-radius: 9999px;
+  transition: transform 0.25s ease, box-shadow 0.25s ease;
+}
+
+.dgs-career-apply-btn:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 10px 24px rgba(0, 179, 159, 0.28);
+}
+
+/* ---------------------------------------------------------
+   5. On This Page (TOC) — same idea as dgs-growth-article.css's
+   .dgs-ga-toc, own markup/class so that stylesheet stays untouched.
+   Only appears when js/careers.js finds 2+ H2s in .dgs-career-post
+   (a single H2 job posting doesn't justify a sidebar nav).
+--------------------------------------------------------- */
+.blog-html-container-single :has(> .dgs-car-toc) {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr);
+  gap: 2.5rem;
+  align-items: start;
+}
+
+@media (min-width: 960px) {
+  .blog-html-container-single :has(> .dgs-car-toc) {
+    grid-template-columns: 220px minmax(0, 1fr);
+  }
+}
+
+.dgs-car-toc {
+  order: -1;
+}
+
+@media (min-width: 960px) {
+  .dgs-car-toc {
+    position: sticky;
+    top: 6.5rem;
+    align-self: start;
+  }
+}
+
+.dgs-car-toc-label {
+  display: block;
+  font-family: var(--font-body);
+  font-size: 0.72rem;
+  font-weight: 700;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  color: var(--car-muted);
+  margin-bottom: 0.9rem;
+}
+
+.dgs-car-toc-list {
+  list-style: none;
+  margin: 0;
+  padding-left: 0.9rem;
+  border-left: 2px solid var(--car-hairline);
+  display: flex;
+  flex-direction: column;
+  gap: 0.65rem;
+}
+
+.dgs-car-toc-list a {
+  font-family: var(--font-body);
+  font-size: 0.9rem;
+  font-weight: 500;
+  color: var(--car-muted);
+  text-decoration: none;
+  transition: color 0.2s ease;
+}
+
+.dgs-car-toc-list a:hover,
+.dgs-car-toc-list a.is-active {
+  color: var(--car-navy);
+}
+
+/* ---------------------------------------------------------
+   6. Tags / Back to Top
+--------------------------------------------------------- */
+.blog-html-container-single > .blog-tags {
+  order: 8;
+  grid-column: 1;
+}
+
+.blog-html-container-single > .blog-tags:empty {
+  display: none;
+}
+
+.blog-html-container-single > .hl-blog-content-back-to-top-container {
+  order: 9;
+  grid-column: 1;
+  padding: 1.5rem 1rem 4rem;
+  border-top: 1px solid var(--car-hairline);
+  margin-top: 1rem;
+}
+
+@media (min-width: 768px) {
+  .blog-html-container-single > .hl-blog-content-back-to-top-container {
+    padding-left: 0;
+    padding-right: 0;
+  }
+}
+
+.blog-html-container-single > .hl-blog-content-back-to-top-container .back-to-top {
+  font-family: var(--font-body) !important;
+  font-size: 0.9rem !important;
+  font-weight: 600 !important;
+  color: var(--car-teal) !important;
+  background: none !important;
+  border: none !important;
+  padding: 0 !important;
+  cursor: pointer;
+}
+
+.blog-html-container-single > .hl-blog-content-back-to-top-container .back-to-top:hover {
+  text-decoration: underline;
+}
+
+/* ---------------------------------------------------------
+   7. Responsive — 480px / 390px hero type trim
+--------------------------------------------------------- */
+@media (max-width: 480px) {
+  .blog-html-container-single > .blog-back-button {
+    padding-top: 6.5rem !important;
+  }
+
+  .blog-html-container-single > .blog-content-title {
+    font-size: clamp(1.7rem, 8vw, 2.2rem) !important;
+  }
+}

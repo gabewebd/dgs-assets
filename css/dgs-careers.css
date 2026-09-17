@@ -220,7 +220,7 @@
 /* ─── OPEN ROLES SECTION ─── */
 .dgs-roles-section-head {
   max-width: 720px;
-  margin: 0 auto 3rem;
+  margin: 0 auto 1.5rem;
   text-align: center;
 }
 
@@ -336,6 +336,187 @@
   flex-wrap: wrap;
   align-items: center;
   gap: 1.5rem;
+}
+
+/* ============================================================
+   NATIVE GHL CAREERS LISTING WIDGET
+   ------------------------------------------------------------
+   Careers "Open Roles" is a GHL Blog List widget pointed at the
+   Careers blog channel (confirmed live, 2026-09-16 saved copy of
+   the Careers page: the widget renders hl-blog-post-home /
+   blog-title / blog-description / readme-btn — the same widget
+   family the site's own Growth Hub listing uses). This section
+   restyles those exact native classes to look like the
+   .dgs-role-card-premium grid above instead of GHL's own default
+   blog-list look — no DOM is rebuilt, no card markup is hand-authored
+   here; every value below targets a real, confirmed selector.
+   .dgs-ghl-native-listing-slot is the wrapper career-main-layout.html
+   puts around the native widget (replaces .dgs-roles-list's own grid
+   with block, since the real grid now lives one level deeper, on the
+   widget's own .flex.flex-wrap row).
+   ============================================================ */
+.dgs-roles-list.dgs-ghl-native-listing-slot {
+  display: block;
+}
+
+.hl-blog-post-home > .flex.flex-wrap {
+  display: grid;
+  grid-template-columns: 1fr;
+  gap: 1.5rem;
+}
+
+@media (min-width: 700px) {
+  .hl-blog-post-home > .flex.flex-wrap {
+    grid-template-columns: repeat(2, 1fr);
+  }
+}
+
+@media (min-width: 1100px) {
+  .hl-blog-post-home > .flex.flex-wrap {
+    grid-template-columns: repeat(3, 1fr);
+  }
+}
+
+/* Card unit. GHL's "compact list" layout repeats
+   .blog-post-wrapper-compact per job (verified against the one live
+   posting; if a listing with 2+ jobs ever shows the repeat happening
+   one level down instead, on .blog-post-wrapper-compact-list, move
+   these box rules there — .content-width-compact/.blog-title/etc.
+   below are unaffected either way). */
+.blog-post-wrapper-compact {
+  display: flex;
+  flex-direction: column;
+  background: #ffffff;
+  border: 1px solid #E2E8F0;
+  border-radius: var(--radius-xl, 16px);
+  box-shadow: 0 4px 20px rgba(10, 31, 51, 0.03);
+  transition: all 0.35s var(--ease-out, ease-out);
+  overflow: hidden;
+}
+
+.blog-post-wrapper-compact:hover {
+  border-color: rgba(0, 179, 159, 0.3);
+  transform: translateY(-4px);
+  box-shadow: 0 16px 36px rgba(10, 31, 51, 0.07);
+}
+
+.blog-post-wrapper-compact .blog-compact-content {
+  display: flex;
+}
+
+.blog-post-wrapper-compact .content-width-compact {
+  display: flex;
+  flex-direction: column;
+  gap: 0.65rem;
+  padding: 2rem;
+  width: 100%;
+}
+
+/* Category/date meta slot: empty on the one confirmed live posting
+   (GHL's per-list "show category/date" toggle was off), but a real
+   native hook GHL can populate — styled defensively as a dept-tag row
+   so it matches .dgs-role-header-row the moment it's turned on, and
+   collapses cleanly (no empty gap) while it stays empty. */
+.blog-post-wrapper-compact .text-black.text-xs:empty {
+  display: none;
+}
+
+.blog-post-wrapper-compact .text-black.text-xs {
+  font-family: var(--font-body, 'Inter', sans-serif) !important;
+  font-size: 0.72rem !important;
+  font-weight: 700 !important;
+  text-transform: uppercase !important;
+  letter-spacing: 0.1em !important;
+  color: var(--action-teal, #00b39f) !important;
+  order: -1;
+}
+
+.blog-post-wrapper-compact h2.blog-title {
+  font-family: var(--font-heading, 'Sora', sans-serif) !important;
+  font-size: 1.3rem !important;
+  font-weight: 800 !important;
+  letter-spacing: -0.015em !important;
+  margin: 0 !important;
+  line-height: 1.25 !important;
+}
+
+.blog-post-wrapper-compact h2.blog-title a {
+  color: var(--bg-deep-navy, #0A1F33) !important;
+  text-decoration: none !important;
+  transition: color 0.3s ease;
+}
+
+.blog-post-wrapper-compact:hover h2.blog-title a {
+  color: var(--action-teal, #00b39f) !important;
+}
+
+.blog-post-wrapper-compact p.blog-description {
+  font-family: var(--font-body, 'Inter', sans-serif) !important;
+  font-size: 0.92rem !important;
+  color: var(--text-dark-muted, #5a6e85) !important;
+  line-height: 1.6 !important;
+  margin: 0 !important;
+}
+
+.blog-post-wrapper-compact a.blog-button.readme-btn {
+  font-family: var(--font-body, 'Inter', sans-serif) !important;
+  font-size: 0.95rem !important;
+  font-weight: 650 !important;
+  color: var(--action-teal, #00b39f) !important;
+  text-decoration: none !important;
+  display: inline-flex !important;
+  align-items: center !important;
+  gap: 0.4rem !important;
+  margin-top: 0.5rem !important;
+}
+
+.blog-post-wrapper-compact a.blog-button.readme-btn svg {
+  width: 18px !important;
+  height: 18px !important;
+  stroke: currentColor !important;
+  transition: transform 0.25s var(--ease-out, ease-out);
+}
+
+.blog-post-wrapper-compact a.blog-button.readme-btn:hover svg {
+  transform: translateX(4px);
+}
+
+/* Pagination: only visible once there are enough jobs to paginate;
+   kept minimal (GHL drives the disabled/active state itself). */
+.hl-blog-post-home .pagination-container {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  margin-top: 3rem;
+}
+
+.hl-blog-post-home .pagination-button {
+  font-family: var(--font-body, 'Inter', sans-serif);
+  font-size: 0.9rem;
+  font-weight: 600;
+  color: var(--text-dark-muted, #5a6e85);
+  background: transparent;
+  border: 1px solid #E2E8F0;
+  border-radius: var(--radius-md, 6px);
+  padding: 0.5rem 0.9rem;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.hl-blog-post-home .pagination-button:disabled {
+  opacity: 0.4;
+  cursor: default;
+}
+
+.hl-blog-post-home .pagination-button.active {
+  color: #ffffff;
+  background: var(--action-teal, #00b39f);
+  border-color: var(--action-teal, #00b39f);
+}
+
+.hl-blog-post-home .pagination-button:not(:disabled):hover {
+  border-color: var(--action-teal, #00b39f);
+  color: var(--action-teal, #00b39f);
 }
 
 /* ─── HIRING PROCESS (CSR-track format shared with solution pages,
