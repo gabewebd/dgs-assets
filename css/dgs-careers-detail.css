@@ -225,8 +225,18 @@
   display: flex !important;
   align-items: center;
   justify-content: center;
+  box-sizing: border-box;
   width: 100% !important;
   gap: 0.4rem;
+  /* Explicit 0 on every side, not just the shorthand's implicit
+     left/right — GHL's own per-template stylesheet can carry its own
+     padding on this exact class (confirmed elsewhere in this file for
+     .blog-content-title), so this has to actively zero it rather than
+     rely on never having set it. Matches .dgs-car-dek's box exactly
+     (that element has zero competing native styles, which is why its
+     alignment is correct — bringing back-link/category/title to the
+     same zero-padding box is what puts all four on one axis). */
+  padding: 0 !important;
   margin: 0 0 1.75rem !important;
   font-family: var(--font-body) !important;
   font-size: 0.82rem !important;
@@ -252,8 +262,10 @@
 }
 
 .dgs-car-hero-inner > .meta-section-1:has(.blog-category) {
+  box-sizing: border-box;
   width: 100% !important;
   text-align: center !important;
+  padding: 0 !important;
   margin: 0 0 1rem !important;
 }
 
@@ -270,8 +282,10 @@
 }
 
 .dgs-car-hero-inner > .blog-content-title {
+  box-sizing: border-box;
   width: 100% !important;
   text-align: center !important;
+  padding: 0 !important;
   margin: 0 0 1.25rem !important;
   font-family: var(--font-heading) !important;
   font-weight: 800 !important;
@@ -288,8 +302,10 @@
    that job's listing-card excerpt text. Optional: simply absent if
    the posting has no meta description. */
 .dgs-car-hero-inner > .dgs-car-dek {
+  box-sizing: border-box;
   width: 100% !important;
   text-align: center !important;
+  padding: 0 !important;
   margin: 0 !important;
   font-family: var(--font-body) !important;
   font-size: 1rem !important;
@@ -505,21 +521,22 @@
   display: none;
 }
 
-.blog-html-container-single > .hl-blog-content-back-to-top-container {
+/* js/dgs-careers.js's moveBackToTop() reparents this element (the
+   REAL native node, never a clone) to be the last child of .blog-html
+   — it's no longer a sibling of it. Styled here for that position:
+   part of the article's own white background (inherited, no longer
+   needs its own), centered, with a hairline divider separating it
+   from the content above. */
+.blog-html-container-single > .blog-html > .hl-blog-content-back-to-top-container {
   width: 100%;
   box-sizing: border-box;
-  padding: 1.5rem 1rem 4rem;
-  background-color: #ffffff !important;
+  text-align: center;
+  margin-top: 2.5rem;
+  padding: 1.75rem 0 0;
+  border-top: 1px solid var(--car-hairline);
 }
 
-@media (min-width: 768px) {
-  .blog-html-container-single > .hl-blog-content-back-to-top-container {
-    padding-left: 0;
-    padding-right: 0;
-  }
-}
-
-.blog-html-container-single > .hl-blog-content-back-to-top-container .back-to-top {
+.blog-html-container-single > .blog-html > .hl-blog-content-back-to-top-container .back-to-top {
   display: inline-block;
   font-family: var(--font-body) !important;
   font-size: 0.9rem !important;
@@ -534,11 +551,11 @@
   -webkit-appearance: none !important;
   appearance: none !important;
   padding: 0 !important;
-  margin: 0 auto !important;
+  margin: 0 !important;
   cursor: pointer;
 }
 
-.blog-html-container-single > .hl-blog-content-back-to-top-container .back-to-top:hover {
+.blog-html-container-single > .blog-html > .hl-blog-content-back-to-top-container .back-to-top:hover {
   text-decoration: underline;
 }
 

@@ -196,6 +196,26 @@
     });
   }
 
+  /* ─── GHL: move "Back to Top" inside the article body ───
+     GHL renders .hl-blog-content-back-to-top-container as a sibling
+     of .blog-html (the white article body), directly under
+     .blog-html-container-single — confirmed live. Visually that made
+     it read as its own separate section below the white card instead
+     of belonging to the article. This reparents the REAL existing
+     node (never a clone/duplicate) to be the last child of .blog-html
+     itself, so it sits inside the same white background as the rest
+     of the article content, as its final element. Idempotent: no-ops
+     once the node is already inside .blog-html, so the shared
+     MutationObserver can call this on every GHL hydration pass
+     without moving it back and forth. */
+  function moveBackToTop() {
+    var content = document.querySelector('.blog-html-container-single > .blog-html');
+    var container = document.querySelector('.blog-html-container-single > .hl-blog-content-back-to-top-container');
+    if (!content || !container) return;
+    if (content.contains(container)) return;
+    content.appendChild(container);
+  }
+
   /* ─── On This Page (TOC): deliberately not built ───
      Career Detail pages never show a table of contents (explicit
      project decision, 2026-09-17) — removed outright rather than kept
@@ -248,6 +268,7 @@
     renameBackButton();
     updateProgress();
     fixBackToTop();
+    moveBackToTop();
     flattenGridCards();
   }
 
