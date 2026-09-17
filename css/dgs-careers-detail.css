@@ -164,7 +164,21 @@
   width: 100vw;
   margin-left: calc(50% - 50vw);
   margin-right: calc(50% - 50vw);
-  background: var(--car-navy);
+  overflow: hidden;
+  /* Same teal/blue radial-glow-over-navy treatment as the Growth
+     Article hero, per the project brief's explicit "use the Growth
+     Article hero as reference — gradient, navy shading" requirement.
+     Ellipse sized 56vw x 22rem @ 50%/-18% — matching
+     dgs-growth-article.css's .dgs-ga-hero::before (the TEXT-ONLY
+     static article hero), not the native-widget .blog-html-container-
+     single::before's larger 84vw x 34rem (that size was deliberately
+     enlarged there to compensate for a much TALLER 2-column hero with
+     a featured image — this hero has no image and is exactly as short
+     as .dgs-ga-hero, so the same smaller glow reads proportionally
+     correct here too). */
+  background:
+    radial-gradient(ellipse 56vw 22rem at 50% -18%, rgba(0, 179, 159, 0.18) 0%, rgba(45, 127, 249, 0.08) 45%, transparent 75%),
+    var(--car-navy);
 }
 
 .blog-html-container-single > .blog-back-button,
@@ -248,7 +262,12 @@
   margin: 0 !important;
   font-family: var(--font-heading) !important;
   font-weight: 800 !important;
-  font-size: clamp(2rem, 4.2vw, 3.2rem) !important;
+  /* Exact same scale as dgs-growth-article.css's
+     .blog-html-container-single > .blog-content-title (the native
+     Growth Article hero heading) — per the brief's explicit "match
+     the current Growth Article hero heading scale, rather than
+     inventing a new huge heading." */
+  font-size: clamp(2.1rem, 4.6vw, 3.7rem) !important;
   line-height: 1.15 !important;
   letter-spacing: -0.02em !important;
   text-transform: none !important;

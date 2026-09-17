@@ -359,24 +359,61 @@
   display: block;
 }
 
-/* Defensive background reset — NOT tied to the compact-list layout
-   below. GHL's blog-list widget ships its own default post/card
-   background as part of the widget's theme, independent of which
-   "layout" style (Compact List, Standard, Grid, …) is selected in
-   the GHL editor; confirmed live 2026-09-17 that switching the
-   layout to "Standard" made this whole section render navy even
-   though #careers-hub is .dgs-section--light (white) in the shell.
-   Scoped to the outer wrapper levels only (never a wildcard
-   descendant selector) so it can't fight whatever background an
-   individual card legitimately needs — this only clears bleed from
-   ancestors/rows, not from the card unit itself. !important because
-   GHL blog-widget theme colors are commonly applied as an inline
-   style, which only an !important external rule can override. */
+/* Local-preview-only reset: only matches inside
+   career-main-layout.html's own .dgs-ghl-native-listing-slot wrapper
+   (this class does not exist on the real live page — see the real
+   fix below), kept so the local file previews correctly regardless
+   of the fix below. */
 .dgs-roles-list.dgs-ghl-native-listing-slot,
 .dgs-roles-list.dgs-ghl-native-listing-slot .hl-blog-post-home,
 .dgs-roles-list.dgs-ghl-native-listing-slot .hl-blog-post-home > .flex.flex-wrap {
   background-color: transparent !important;
   background-image: none !important;
+}
+
+/* THE REAL FIX (confirmed against the live saved DOM, 2026-09-17):
+   the "Open Roles" Blog List widget is NOT nested inside #careers-hub
+   at all. It's pasted into GHL as its own, separate Custom Code
+   element, which GHL wraps in its own top-level Section — a sibling
+   AFTER </main> closes, not a descendant of it (verified: in the
+   saved HTML, </main> closes, several wrapper divs close right after
+   it, then a brand-new <div id="section-...", class="fullSection
+   c-section c-wrapper section-..."> begins, and .hl-blog-post-home is
+   inside THAT). That Section's own GHL-generated scoped style sets
+   `background-color:var(--transparent)` (confirmed, literally
+   transparent) — so whatever shows through as "navy" is the page's
+   own default canvas color behind it, which every OTHER section on
+   this page happens to paint over explicitly (.dgs-section--light,
+   .dgs-hero-duotone, etc.) but this bare, separate widget Section
+   never did.
+   Fix: give the widget's own STABLE wrapper classes an explicit
+   opaque white background. Deliberately NOT using the random
+   per-element ID class (e.g. section-TVAMz1vWu1 above) since GHL
+   regenerates that on every page edit/republish — .fullSection,
+   .c-row, .c-column, .c-custom-code, .custom-code-container are the
+   same reusable builder classes on every GHL page. Scoped narrowly
+   with :has(.hl-blog-post-home) so this can never affect any other
+   custom-code Section sitewide (Growth Hub's own listing, the
+   footer's own custom-code paste, etc.) — requires a :has()-capable
+   browser (all current Chrome/Edge/Safari; no fallback needed for
+   GHL's own preview/live rendering). */
+.fullSection:has(.hl-blog-post-home),
+.c-row:has(.hl-blog-post-home),
+.c-column:has(.hl-blog-post-home),
+.c-custom-code:has(.hl-blog-post-home),
+.custom-code-container:has(.hl-blog-post-home) {
+  background-color: #ffffff !important;
+  background-image: none !important;
+}
+
+/* Belt-and-suspenders: GHL's own scoped style already sets this
+   widget's background to white (confirmed:
+   .hl-blog-post-home{background-color:#ffffffff} in the live page's
+   own generated <style>), but restating it here means the widget
+   stays white even if that per-page generated rule is ever missing
+   or reordered. */
+.hl-blog-post-home {
+  background-color: #ffffff !important;
 }
 
 .hl-blog-post-home > .flex.flex-wrap {
