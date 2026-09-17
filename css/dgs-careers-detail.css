@@ -134,55 +134,16 @@
 }
 
 /* ---------------------------------------------------------
-   2. Layout containment
-   GHL's blog-content section wrapper can carry a max-width/margin
-   that fights a single centered column; reset it the same way
-   dgs-growth-article.css does for the equivalent wrapper.
+   2. Layout containment — GHL's blog-content section wrapper can
+   carry its own max-width/margin/padding that fights a full-width
+   hero; reset the real ancestor chain (never the random per-element
+   ID classes GHL regenerates on every edit).
 --------------------------------------------------------- */
 .dgs-ghl-blog-content {
   max-width: 100% !important;
   margin: 0 !important;
 }
 
-.blog-html-container-single {
-  position: relative;
-  display: grid;
-  grid-template-columns: minmax(0, 1fr);
-  justify-items: center;
-  text-align: center;
-  /* ONE navy background on the container itself (v3, 2026-09-19) —
-     not on each hero element separately. Giving back-link/category/
-     title/description each their OWN width:100%+background+padding
-     independently was fragile: any tiny mismatch between them (and
-     one kept appearing — a visibly narrower, darker "boxed" title+
-     description live on tablet/laptop widths, confirmed live
-     screenshots) showed up as a broken seam, because there were 4
-     separate sources of truth for "how wide is the navy band" instead
-     of one. With the background here instead, every hero element
-     just needs padding for text measure — the WIDTH FIX above already
-     makes this container itself the true full available width, so
-     there's nothing left to disagree about. */
-  background-color: var(--car-navy);
-}
-
-/* WIDTH FIX v2 (2026-09-19) — the width:100vw negative-margin
-   "breakout" technique tried previously was abandoned outright: it
-   got clipped by GHL's OWN `.blog-html-container-single{overflow:
-   hidden}` rule, and after overriding THAT, it still showed a boxed-
-   in navy band with a visible margin/white border on every side
-   (confirmed live, 2026-09-19 screenshot) — meaning a DIFFERENT
-   ancestor further up (GHL's page-builder row/column/section
-   wrappers, which carry `data-entrance-clip="1"` for their own
-   scroll-reveal animation and very likely clip overflow for it) was
-   also clipping the breakout, with no reliable way to know how many
-   more ancestors might do the same.
-   Replaced with the SAME proven technique already used for the
-   Careers listing widget's width bug: force width:100% up the real,
-   stable ancestor chain (never the random per-element ID classes,
-   which GHL regenerates on every edit) so the hero's actual container
-   genuinely IS the full available content width — then the navy
-   background only needs plain width:100% on itself, no viewport-
-   relative breakout and nothing left for any ancestor to clip. */
 .fullSection:has(.blog-html-container-single),
 .c-row:has(.blog-html-container-single),
 .c-column:has(.blog-html-container-single),
@@ -191,115 +152,106 @@
 .vertical.inner:has(.blog-html-container-single) {
   width: 100% !important;
   max-width: 100% !important;
-  /* PADDING/MARGIN, not just width (real bug, found live, 2026-09-19):
-     width:100% alone still leaves the navy content visibly inset —
-     GHL's own generated per-widget styles put real padding on these
-     same row/column wrappers (confirmed: e.g. "padding:20px 0" on the
-     section, "padding:10px 5px" on the column), which reads as a
-     plain white gap/border around the hero since the navy background
-     only fills the PADDED content box, not the element's outer edge.
-     Zeroing both here closes that gap the same way the width fix
-     closes the narrow-column bug — same ancestor chain, same reason. */
   padding: 0 !important;
   margin: 0 !important;
 }
 
 /* ---------------------------------------------------------
-   3. Hero band (back-link, category, title, description)
-   Native render order is: image, title, category, date, content.
-   Target order: back-link, category, title, description — see
-   file header for why there's no metadata line here: the
-   Work Setup/Work Shift-style facts the job author writes in
-   .dgs-career-meta belong in the ARTICLE BODY where the author
-   actually put them (explicit correction, 2026-09-19) — this
-   template no longer relocates that element into the hero at all.
+   3. Hero
+   No date, no image, no metadata line in the hero — Work Setup/Work
+   Shift-style facts the job author writes belong in the article body
+   (see .dgs-career-post .dgs-career-meta near the bottom of this
+   file), and .blog-cover-image-container is never part of the hero's
+   content structure at all (a career posting never has one; it stays
+   hidden as a bare sibling, not moved into the wrapper below).
 
-   The navy comes from ONE background on .blog-html-container-single
-   itself (see above), so the band is naturally exactly as tall as
-   whichever elements actually exist — back-link, category and title
-   always do; the description (.dgs-car-dek) is optional (only
-   appears once a posting has a meta description) and simply isn't
-   there otherwise, no reserved empty space and no seam.
-
-   The SAME max(1.5rem, calc(50% - 24rem)) padding is used on every
-   hero element AND on .blog-html below (24rem = half of the 48rem
-   target reading width) — one formula, not scattered per-breakpoint
-   overrides. `%` (not `vw`) resolves against the CONTAINING BLOCK's
-   actual rendered width, so it correctly centers a readable measure
-   regardless of how wide the container legitimately is. No width or
-   background on these elements anymore — see the container rule
-   above for why. */
-.blog-html-container-single > .blog-back-button,
-.blog-html-container-single > .meta-section-1:has(.blog-category),
-.blog-html-container-single > .blog-content-title,
-.blog-html-container-single > .dgs-car-dek {
-  grid-column: 1;
-  box-sizing: border-box;
-  padding-left: max(1.5rem, calc(50% - 24rem));
-  padding-right: max(1.5rem, calc(50% - 24rem));
+   ARCHITECTURE — read this before changing anything here:
+   .blog-html-container-single is ONLY responsible for the navy
+   background (`!important` because GHL ships its own
+   `#blog-content-<id> .blog-html-container-single{background-color:
+   #fff}` rule on every posting, confirmed live, which otherwise wins
+   on specificity and erases the navy) and the decorative glow.
+   js/dgs-careers.js's buildHeroInner() creates ONE real wrapper,
+   .dgs-car-hero-inner, and moves the real back-link/category/title
+   nodes into it, then insertDek() appends the description as its
+   last child — so back-link, category, title and description are
+   ACTUAL SIBLINGS inside one element, not four independent hero
+   children each computing their own width. This wrapper is the only
+   place readable content width is decided (`width: min(100% - 3rem,
+   48rem)` + auto margins — a fixed max measure with a guaranteed
+   minimum gutter, no viewport units, no dependency on how wide any
+   ancestor happens to render). Everything inside it just stacks in
+   normal document flow, in the order buildHeroInner() puts them in —
+   no CSS `order` needed anymore, because DOM order finally matches
+   visual order. Do NOT re-introduce a per-child width/background/
+   padding system here: that's the exact design (tried and abandoned)
+   that let hero elements drift out of sync under different GHL
+   page-builder states and produced the mismatched-box and
+   collapsing-text bugs seen live. One wrapper, one width formula. */
+.blog-html-container-single {
+  position: relative;
+  background-color: var(--car-navy) !important;
 }
 
-/* Decorative glow, painted on top of the container's own navy
-   background (set above). Fixed height, not tied to hero row count.
-   Low-alpha so text stays fully readable through the tint. */
+/* Decorative glow — a separate absolute layer, not a background on
+   any text element (a background can never paint past its own box,
+   so a glow meant to visually span several lines has to be its own
+   layer). Low-alpha, so text stays readable through it. */
 .blog-html-container-single::before {
   content: '';
   position: absolute;
-  top: 0;
-  left: 0;
-  right: 0;
+  inset: 0 0 auto 0;
   z-index: 0;
-  width: 100%;
   height: 24rem;
   background: radial-gradient(ellipse 56vw 22rem at 50% -18%, rgba(0, 179, 159, 0.18) 0%, rgba(45, 127, 249, 0.08) 45%, transparent 75%);
   pointer-events: none;
 }
 
-.blog-html-container-single > * {
+.dgs-car-hero-inner {
   position: relative;
   z-index: 1;
+  box-sizing: border-box;
+  width: min(100% - 3rem, 48rem);
+  margin: 0 auto;
+  padding: 8.5rem 0 2.75rem;
+  text-align: center;
 }
 
-.blog-html-container-single > .blog-back-button {
-  order: 1;
+.dgs-car-hero-inner > .blog-back-button {
   display: flex !important;
   align-items: center;
   justify-content: center;
   gap: 0.4rem;
-  padding-top: 8.5rem !important;
-  padding-bottom: 1.75rem !important;
+  margin: 0 0 1.75rem !important;
   font-family: var(--font-body) !important;
   font-size: 0.82rem !important;
   font-weight: 600 !important;
   color: rgba(255, 255, 255, 0.65) !important;
   text-decoration: none !important;
-  margin-top: 0 !important;
   cursor: pointer;
 }
 
-.blog-html-container-single > .blog-back-button:hover {
+.dgs-car-hero-inner > .blog-back-button:hover {
   color: var(--car-teal) !important;
 }
 
 /* GHL's default back-arrow renders blank without Font Awesome loaded
-   (same fix as dgs-growth-article.css) — swap for a plain glyph. */
-.blog-html-container-single > .blog-back-button .blog-left-arrow {
+   — swap for a plain glyph. */
+.dgs-car-hero-inner > .blog-back-button .blog-left-arrow {
   margin-right: 0.3rem !important;
 }
 
-.blog-html-container-single > .blog-back-button .blog-left-arrow::before {
+.dgs-car-hero-inner > .blog-back-button .blog-left-arrow::before {
   content: "\2190" !important;
   font-family: var(--font-body) !important;
 }
 
-.blog-html-container-single > .meta-section-1:has(.blog-category) {
-  order: 2;
-  padding-top: 0 !important;
-  padding-bottom: 1rem !important;
+.dgs-car-hero-inner > .meta-section-1:has(.blog-category) {
+  margin: 0 0 1rem !important;
 }
 
-.blog-html-container-single .blog-category,
-.blog-html-container-single .blog-category a {
+.dgs-car-hero-inner .blog-category,
+.dgs-car-hero-inner .blog-category a {
   display: inline-block;
   font-family: var(--font-body) !important;
   font-size: 0.72rem !important;
@@ -310,11 +262,8 @@
   text-decoration: none !important;
 }
 
-.blog-html-container-single > .blog-content-title {
-  order: 3;
-  padding-top: 0 !important;
-  padding-bottom: 1.25rem !important;
-  margin: 0 !important;
+.dgs-car-hero-inner > .blog-content-title {
+  margin: 0 0 1.25rem !important;
   font-family: var(--font-heading) !important;
   font-weight: 800 !important;
   font-size: clamp(2.1rem, 4.6vw, 3.7rem) !important;
@@ -324,24 +273,12 @@
   color: #ffffff !important;
 }
 
-/* Description: js/dgs-careers.js inserts this from the post's own
-   <meta name="description"> — real per-posting SEO data, not
-   invented copy; confirmed identical to that job's listing-card
-   excerpt text. Sits directly below the title (order:4) — the
-   project's own correction, 2026-09-19: the metadata line that used
-   to sit here (Work Setup/Work Shift) was removed from the hero
-   entirely and now stays in the article body where the author
-   actually writes it (see .dgs-career-post .dgs-career-meta below).
-   Optional: simply absent (no reserved space) if the posting has no
-   meta description. NO max-width here — the shared padding formula
-   above already centers a readable measure; stacking a max-width on
-   top of that previously collapsed the content area to ~0 and forced
-   the text to wrap one character per line (root cause found and
-   fixed, 2026-09-18). */
-.blog-html-container-single > .dgs-car-dek {
-  order: 4;
-  padding-top: 0 !important;
-  padding-bottom: 2.75rem !important;
+/* Description: js/dgs-careers.js's insertDek() appends this as the
+   LAST child of .dgs-car-hero-inner — real per-posting SEO data from
+   the post's own <meta name="description">, confirmed identical to
+   that job's listing-card excerpt text. Optional: simply absent if
+   the posting has no meta description. */
+.dgs-car-hero-inner > .dgs-car-dek {
   margin: 0 !important;
   font-family: var(--font-body) !important;
   font-size: 1rem !important;
@@ -349,7 +286,7 @@
   color: rgba(255, 255, 255, 0.78) !important;
 }
 
-.blog-html-container-single > .dgs-car-dek::before {
+.dgs-car-hero-inner > .dgs-car-dek::before {
   content: '';
   display: block;
   width: 48px;
@@ -359,8 +296,8 @@
 }
 
 /* Publish date + featured image: no static-design counterpart for a
-   job posting (see file header) — native elements are kept in the
-   DOM (never deleted) but not surfaced visually. */
+   job posting — native elements kept in the DOM, not surfaced, never
+   moved into .dgs-car-hero-inner. */
 .blog-html-container-single > .meta-section-1:has(.blog-date),
 .blog-html-container-single > .blog-cover-image-container {
   display: none !important;
@@ -377,8 +314,6 @@
    pattern) so every future posting only needs to paste clean HTML.
 --------------------------------------------------------- */
 .blog-html-container-single > .blog-html {
-  order: 7;
-  grid-column: 1;
   box-sizing: border-box;
   width: 100%;
   padding: 3rem 1rem 1rem;
@@ -397,10 +332,10 @@
 }
 
 .dgs-career-post {
-  /* Resets the centered text-align inherited from
-     .blog-html-container-single (the hero above is centered per the
-     brief; the body content below stays left-aligned prose, same as
-     it's always been — "do not redesign the existing body"). */
+  /* Body content stays left-aligned prose (the hero's centering lives
+     on .dgs-car-hero-inner, a sibling of .blog-html, so it never
+     cascades down here — this is just a defensive explicit default,
+     "do not redesign the existing body"). */
   text-align: left;
   font-family: var(--font-body, 'Inter', sans-serif);
   color: var(--car-ink);
@@ -551,8 +486,6 @@
    6. Tags / Back to Top
 --------------------------------------------------------- */
 .blog-html-container-single > .blog-tags {
-  order: 8;
-  grid-column: 1;
   width: 100%;
   background-color: #ffffff;
 }
@@ -562,8 +495,6 @@
 }
 
 .blog-html-container-single > .hl-blog-content-back-to-top-container {
-  order: 9;
-  grid-column: 1;
   width: 100%;
   box-sizing: border-box;
   padding: 1.5rem 1rem 4rem;

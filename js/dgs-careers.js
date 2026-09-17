@@ -82,31 +82,69 @@
     progress.style.width = (pct * 100) + '%';
   }
 
+  /* ─── GHL: build ONE hero-inner wrapper (title + description share it) ───
+     GHL renders back-link, category, title (and, hidden, cover-image
+     and date) as flat siblings directly under .blog-html-container-
+     single — there is no native wrapper grouping them, which is
+     exactly why earlier attempts to give title/description a shared
+     "readable content width" kept drifting out of sync: each one was
+     independently computing its own width/padding against the same
+     ancestor, and any tiny mismatch between those independent
+     calculations showed up as a broken/collapsed box (confirmed live
+     across multiple postings and viewport widths).
+     This creates ONE real wrapper (.dgs-car-hero-inner), MOVES the
+     real back-link/category/title nodes into it (not clones — these
+     are the actual native elements, so GHL's own attached behavior,
+     e.g. the back-link's click binding, keeps working), and leaves
+     .blog-cover-image-container and the date meta-section exactly
+     where they are as hidden siblings of the wrapper — never part of
+     the hero's content structure at all. insertDek() below then
+     inserts the description as the LAST child of this same wrapper,
+     so the CSS only ever needs to size ONE element
+     (.dgs-car-hero-inner) for both title and description to share.
+     Idempotent: no-ops the instant the wrapper already exists, so the
+     shared MutationObserver can call this on every GHL hydration pass
+     without re-wrapping or duplicating anything. */
+  function buildHeroInner() {
+    var hero = getHero();
+    if (!hero) return null;
+    var existing = hero.querySelector(':scope > .dgs-car-hero-inner');
+    if (existing) return existing;
+    var title = hero.querySelector(':scope > .blog-content-title');
+    if (!title) return null;
+    var backBtn = hero.querySelector(':scope > .blog-back-button');
+    var category = hero.querySelector(':scope > .meta-section-1:has(.blog-category)');
+    var inner = document.createElement('div');
+    inner.className = 'dgs-car-hero-inner';
+    hero.insertBefore(inner, title);
+    if (backBtn) inner.appendChild(backBtn);
+    if (category) inner.appendChild(category);
+    inner.appendChild(title);
+    return inner;
+  }
+
   /* ─── GHL: hero description from the post's own meta description ───
      GHL has no native description/summary element on the single-post
      hero (confirmed against three separate live postings — only
      cover-image, title, category, date and body content exist).
      meta[name="description"] is real per-posting data GHL exposes,
      confirmed identical to that job's listing-card excerpt text, so
-     this is the same underlying field, not invented copy. Creates a
-     fresh node (mirrors insertDek() in dgs-growth-article.js) rather
-     than moving anything, so GHL's Vue hydration re-diffing the body
-     content never fights over ownership of a node it expects to
-     still be there. Inserted directly after the title — the
-     Work Setup/Work Shift-style metadata a job author writes in
-     .dgs-career-meta stays in the article body where they put it
-     (explicit correction, 2026-09-19); this file no longer relocates
-     it into the hero at all. */
+     this is the same underlying field, not invented copy. Appended as
+     the last child of the SAME hero-inner wrapper title lives in (see
+     buildHeroInner() above) — not an independent hero element with
+     its own width/padding. The Work Setup/Work Shift-style metadata a
+     job author writes in .dgs-career-meta stays in the article body
+     where they put it; this file never relocates it into the hero. */
   function insertDek() {
-    var hero = getHero();
-    var title = hero && hero.querySelector(':scope > .blog-content-title');
+    var inner = buildHeroInner();
+    if (!inner) return;
+    if (inner.querySelector(':scope > .dgs-car-dek')) return;
     var descMeta = document.querySelector('meta[name="description"]');
-    if (!hero || !title || !descMeta || !descMeta.content) return;
-    if (hero.querySelector(':scope > .dgs-car-dek')) return;
+    if (!descMeta || !descMeta.content) return;
     var dek = document.createElement('p');
     dek.className = 'dgs-car-dek';
     dek.textContent = descMeta.content;
-    hero.insertBefore(dek, title.nextSibling);
+    inner.appendChild(dek);
   }
 
   /* ─── GHL: relabel the native "Back to Blog" link ───
@@ -115,7 +153,10 @@
      inside <span>, not a direct child of the <a>, and GHL hardcodes
      both the text and aria-label. */
   function renameBackButton() {
-    var backBtn = document.querySelector('.blog-html-container-single > .blog-back-button');
+    /* Not scoped to a DIRECT child anymore — buildHeroInner() moves
+       this real node inside .dgs-car-hero-inner, so it's a grandchild
+       of the hero once that wrapper exists. */
+    var backBtn = document.querySelector('.blog-html-container-single .blog-back-button');
     if (!backBtn) return;
     if (backBtn.getAttribute('aria-label') !== 'Back to Careers') {
       backBtn.setAttribute('aria-label', 'Back to Careers');
@@ -202,6 +243,7 @@
   }
 
   function syncGhlCareer() {
+    buildHeroInner();
     insertDek();
     renameBackButton();
     updateProgress();
