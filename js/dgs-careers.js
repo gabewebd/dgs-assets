@@ -82,45 +82,21 @@
     progress.style.width = (pct * 100) + '%';
   }
 
-  /* ─── GHL: hero meta line (Location · Employment Type) ───
-     GHL has no native field for this (confirmed against the live
-     posting: only category, title, date and body content exist).
-     The job author instead includes it as real content at the top
-     of their own posting, `.dgs-career-post > .dgs-career-meta`
-     — same authoring convention already used for the lead paragraph
-     and responsibilities. This relocates that real text into the
-     hero as a new element (mirrors insertDek() in
-     dgs-growth-article.js: creates a fresh node rather than moving
-     the original, so GHL's Vue hydration re-diffing the body content
-     never fights over ownership of a node it expects to still be
-     there). The original stays in the DOM, visually hidden via CSS
-     (dgs-careers-detail.css), so nothing is duplicated on screen. */
-  function insertMetaLine() {
-    var hero = getHero();
-    var title = hero && hero.querySelector(':scope > .blog-content-title');
-    var post = getCareerPost();
-    var metaSrc = post && post.querySelector('.dgs-career-meta');
-    if (!hero || !title || !metaSrc || !metaSrc.textContent.trim()) return;
-    if (hero.querySelector(':scope > .dgs-car-meta-line')) return;
-    var meta = document.createElement('div');
-    meta.className = 'dgs-car-meta-line';
-    /* Confirmed live (Account Manager posting, 2026-09-18):
-       .dgs-career-meta is authored as several <span> lines (e.g.
-       "Work Set up: ..." / "Work Shift: ..."), not one string —
-       .textContent would concatenate them with no separator at all.
-       Cloning the real child nodes preserves each fact as its own
-       line; a plain-text posting (no <span> children) still works
-       since cloning a single text node behaves the same as copying
-       its text. */
-    Array.prototype.forEach.call(metaSrc.childNodes, function (node) {
-      meta.appendChild(node.cloneNode(true));
-    });
-    hero.insertBefore(meta, title.nextSibling);
-  }
-
   /* ─── GHL: hero description from the post's own meta description ───
-     Same proven technique as insertDek() in dgs-growth-article.js —
-     real per-post SEO data, not invented copy. */
+     GHL has no native description/summary element on the single-post
+     hero (confirmed against three separate live postings — only
+     cover-image, title, category, date and body content exist).
+     meta[name="description"] is real per-posting data GHL exposes,
+     confirmed identical to that job's listing-card excerpt text, so
+     this is the same underlying field, not invented copy. Creates a
+     fresh node (mirrors insertDek() in dgs-growth-article.js) rather
+     than moving anything, so GHL's Vue hydration re-diffing the body
+     content never fights over ownership of a node it expects to
+     still be there. Inserted directly after the title — the
+     Work Setup/Work Shift-style metadata a job author writes in
+     .dgs-career-meta stays in the article body where they put it
+     (explicit correction, 2026-09-19); this file no longer relocates
+     it into the hero at all. */
   function insertDek() {
     var hero = getHero();
     var title = hero && hero.querySelector(':scope > .blog-content-title');
@@ -130,8 +106,7 @@
     var dek = document.createElement('p');
     dek.className = 'dgs-car-dek';
     dek.textContent = descMeta.content;
-    var metaLine = hero.querySelector(':scope > .dgs-car-meta-line');
-    hero.insertBefore(dek, (metaLine || title).nextSibling);
+    hero.insertBefore(dek, title.nextSibling);
   }
 
   /* ─── GHL: relabel the native "Back to Blog" link ───
@@ -227,7 +202,6 @@
   }
 
   function syncGhlCareer() {
-    insertMetaLine();
     insertDek();
     renameBackButton();
     updateProgress();

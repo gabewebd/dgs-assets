@@ -429,6 +429,13 @@
 .vertical.inner:has(.hl-blog-post-home) {
   width: 100% !important;
   max-width: 100% !important;
+  /* Same ancestor chain also carries GHL's own generated padding
+     (confirmed on the Career Detail hero's identical ancestor chain,
+     e.g. "padding:20px 0" on the section, "padding:10px 5px" on the
+     column) — zeroed here too so the grid gets the FULL available
+     width, not width-minus-native-padding. */
+  padding: 0 !important;
+  margin: 0 !important;
 }
 
 /* Belt-and-suspenders: GHL's own scoped style already sets this

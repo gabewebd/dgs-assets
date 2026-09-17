@@ -97,7 +97,7 @@
    ============================================================ */
 
 /* :root (not just a scoped class) so --car-* resolves even before
-   js/careers.js has a chance to add class="dgs-car" to <main> — same
+   js/dgs-careers.js has a chance to add class="dgs-car" to <main> — same
    reasoning already documented for --ga-* in dgs-growth-article.css:
    a var() that fails to resolve on an inherited property like `color`
    falls back to the inherited value, not an error, so it silently
@@ -150,72 +150,94 @@
   grid-template-columns: minmax(0, 1fr);
   justify-items: center;
   text-align: center;
-  /* GHL's OWN base blog-widget stylesheet sets
-     `.blog-html-container-single { overflow: hidden; ... }` sitewide
-     (confirmed live, unscoped, on every published posting). That
-     clips the width:100vw full-bleed breakout below back down to this
-     element's own (ancestor-padded, ~1170px-max-width-centered) box —
-     so the navy hero band never actually reaches the viewport edge,
-     and GHL's OTHER live rule (`#blog-content-<id> .blog-html-container-single
-     { background-color:#fff }`) shows through as a plain white gap
-     wrapping the now-boxed-in navy content on every side: the
-     "invisible margin / white border around the hero" symptom. The
-     breakout technique only works if this container doesn't clip its
-     own children, so overflow must stay visible. */
-  overflow: visible !important;
+}
+
+/* WIDTH FIX v2 (2026-09-19) — the width:100vw negative-margin
+   "breakout" technique tried previously was abandoned outright: it
+   got clipped by GHL's OWN `.blog-html-container-single{overflow:
+   hidden}` rule, and after overriding THAT, it still showed a boxed-
+   in navy band with a visible margin/white border on every side
+   (confirmed live, 2026-09-19 screenshot) — meaning a DIFFERENT
+   ancestor further up (GHL's page-builder row/column/section
+   wrappers, which carry `data-entrance-clip="1"` for their own
+   scroll-reveal animation and very likely clip overflow for it) was
+   also clipping the breakout, with no reliable way to know how many
+   more ancestors might do the same.
+   Replaced with the SAME proven technique already used for the
+   Careers listing widget's width bug: force width:100% up the real,
+   stable ancestor chain (never the random per-element ID classes,
+   which GHL regenerates on every edit) so the hero's actual container
+   genuinely IS the full available content width — then the navy
+   background only needs plain width:100% on itself, no viewport-
+   relative breakout and nothing left for any ancestor to clip. */
+.fullSection:has(.blog-html-container-single),
+.c-row:has(.blog-html-container-single),
+.c-column:has(.blog-html-container-single),
+.c-custom-code:has(.blog-html-container-single),
+.custom-code-container:has(.blog-html-container-single),
+.vertical.inner:has(.blog-html-container-single) {
+  width: 100% !important;
+  max-width: 100% !important;
+  /* PADDING/MARGIN, not just width (real bug, found live, 2026-09-19):
+     width:100% alone still leaves the navy content visibly inset —
+     GHL's own generated per-widget styles put real padding on these
+     same row/column wrappers (confirmed: e.g. "padding:20px 0" on the
+     section, "padding:10px 5px" on the column), which reads as a
+     plain white gap/border around the hero since the navy background
+     only fills the PADDED content box, not the element's outer edge.
+     Zeroing both here closes that gap the same way the width fix
+     closes the narrow-column bug — same ancestor chain, same reason. */
+  padding: 0 !important;
+  margin: 0 !important;
 }
 
 /* ---------------------------------------------------------
-   3. Hero band (back-link, category, title, meta line, description)
+   3. Hero band (back-link, category, title, description)
    Native render order is: image, title, category, date, content.
-   Target order: back-link, category, title, meta(location/type),
-   description.
+   Target order: back-link, category, title, description — see
+   file header for why there's no metadata line here: the
+   Work Setup/Work Shift-style facts the job author writes in
+   .dgs-career-meta belong in the ARTICLE BODY where the author
+   actually put them (explicit correction, 2026-09-19) — this
+   template no longer relocates that element into the hero at all.
 
-   ONE container, single padding formula (belt-and-suspenders fixed
-   2026-09-18): every hero element gets its OWN full-bleed navy
-   background (100vw breakout) instead of a single shared pseudo-
-   element spanning a hardcoded row count. The previous version
-   reserved grid-row:1/6 assuming all 5 elements (back-link, category,
-   title, meta-line, dek) always exist — but the meta-line and dek are
-   OPTIONAL (only appear once a posting has .dgs-career-meta / a meta
-   description), so on a posting without them the reserved rows still
-   painted navy with nothing in them: a dead gap plus a visible seam
-   where the fixed-height band ended and the white content began.
-   Per-element backgrounds instead paint exactly as tall as whichever
-   elements actually exist, edge to edge, no gap and no seam.
+   Every hero element gets its OWN navy background, width:100% of
+   .blog-html-container-single (not the viewport), so the band is
+   always exactly as tall as whichever elements actually exist —
+   back-link, category and title always do; the description
+   (.dgs-car-dek) is optional (only appears once a posting has a meta
+   description) and simply isn't there otherwise, no reserved empty
+   space and no seam.
 
-   The SAME max(1.5rem, calc(50vw - 24rem)) padding is used on every
+   The SAME max(1.5rem, calc(50% - 24rem)) padding is used on every
    hero element AND on .blog-html below (24rem = half of the 48rem
    target reading width) — one formula, not scattered per-breakpoint
-   overrides that zero out at desktop (the earlier bug that put text
-   flush against the viewport edge). calc() uses `vw`, not `%`: these
-   elements are width:100vw breakouts, and padding percentages resolve
-   against the CONTAINING block's width, not the element's own — `vw`
-   is required to size the gutter off the real viewport instead. */
+   overrides. calc() uses `%`, NOT `vw` (real bug, found live,
+   2026-09-19): `vw` is relative to the browser viewport, which was
+   correct back when these elements did a width:100vw breakout — now
+   that the breakout is gone and they're just width:100% of whatever
+   width GHL's own container actually renders at (which the WIDTH FIX
+   above forces to 100% of ITS parent, not necessarily the full
+   browser viewport), `vw`-based padding still assumed full-viewport
+   width and oversized itself the moment the real container was
+   narrower — eating the entire content area and collapsing the text
+   (the exact "post description is collapsing" symptom). `%` for
+   padding resolves against the CONTAINING BLOCK's actual width, which
+   for a width:100% element IS this element's real rendered width, so
+   it correctly centers a readable measure regardless of how wide the
+   container legitimately is. */
 .blog-html-container-single > .blog-back-button,
 .blog-html-container-single > .meta-section-1:has(.blog-category),
 .blog-html-container-single > .blog-content-title,
-.blog-html-container-single > .dgs-car-meta-line,
 .blog-html-container-single > .dgs-car-dek {
   position: relative;
   z-index: 1;
   box-sizing: border-box;
   grid-column: 1;
-  /* !important on width/margin/background too (not just padding):
-     these are the properties that actually PERFORM the full-bleed
-     breakout, so anything downstream (a later rule's shorthand
-     `margin`, a GHL live default, a stray specificity fight) that
-     nudges any one of them back to normal silently un-breaks the
-     hero without ever touching `display`/`padding` — exactly what
-     happened with the per-element `margin: 0 !important` mistake
-     below. Making the breakout itself non-negotiable is cheaper than
-     re-discovering this every time a new rule gets added here. */
-  width: 100vw !important;
-  margin-left: calc(50% - 50vw) !important;
-  margin-right: calc(50% - 50vw) !important;
+  width: 100%;
   background-color: var(--car-navy) !important;
-  padding-left: max(1.5rem, calc(50vw - 24rem)) !important;
-  padding-right: max(1.5rem, calc(50vw - 24rem)) !important;
+  padding-left: max(1.5rem, calc(50% - 24rem)) !important;
+  padding-right: max(1.5rem, calc(50% - 24rem)) !important;
 }
 
 /* Decorative glow only — NOT a background on any real element (a
@@ -224,19 +246,18 @@
    layer). Fixed height, not tied to hero row count. Sits above the
    solid-navy elements (z-index) but stays low-alpha so text (inside
    those same navy elements, in normal flow beneath this) stays fully
-   readable through the tint — same teal/blue stops as the Growth
-   Article hero, sized like dgs-growth-article.css's .dgs-ga-hero::before
-   (the text-only static reference), not the taller native-widget
-   version built for a 2-column image hero. */
+   readable through the tint. width:100% (not 100vw) for the same
+   reason as the hero elements above — nothing here needs to reach
+   the true viewport edge now that the container itself is full width. */
 .blog-html-container-single::before {
   content: '';
   position: absolute;
   top: 0;
-  left: 50%;
+  left: 0;
+  right: 0;
   z-index: 2;
-  width: 100vw;
+  width: 100%;
   height: 24rem;
-  transform: translateX(-50%);
   background: radial-gradient(ellipse 56vw 22rem at 50% -18%, rgba(0, 179, 159, 0.18) 0%, rgba(45, 127, 249, 0.08) 45%, transparent 75%);
   pointer-events: none;
 }
@@ -295,23 +316,9 @@
   order: 3;
   padding-top: 0 !important;
   padding-bottom: 1.25rem !important;
-  /* margin-TOP/BOTTOM only, never the `margin` shorthand: the shared
-     full-bleed rule above sets margin-left/margin-right: calc(50% -
-     50vw) to breakout to 100vw. A shorthand `margin: 0 !important`
-     here resets ALL FOUR sides (left/right included), silently
-     cancelling that breakout and leaving this element in its normal,
-     non-full-bleed position — the exact bug that made the title (and
-     the description below, same mistake) render as a narrower,
-     inset box instead of the full-bleed navy band. */
-  margin-top: 0 !important;
-  margin-bottom: 0 !important;
+  margin: 0 !important;
   font-family: var(--font-heading) !important;
   font-weight: 800 !important;
-  /* Exact same scale as dgs-growth-article.css's
-     .blog-html-container-single > .blog-content-title (the native
-     Growth Article hero heading) — per the brief's explicit "match
-     the current Growth Article hero heading scale, rather than
-     inventing a new huge heading." */
   font-size: clamp(2.1rem, 4.6vw, 3.7rem) !important;
   line-height: 1.15 !important;
   letter-spacing: -0.02em !important;
@@ -319,76 +326,25 @@
   color: #ffffff !important;
 }
 
-/* Meta line (Location / Employment Type / Work Shift, etc.): a real
-   element js/careers.js relocates from the job's own custom-code
-   content (.dgs-career-post > .dgs-career-meta, authored once per
-   posting — GHL has no dedicated Location/Employment Type field to
-   read instead, confirmed against three separate live postings).
-   Confirmed live usage (Account Manager posting, 2026-09-18) authors
-   this as a <div> with multiple <span> lines, one per metadata fact
-   (e.g. "Work Set up: ..." / "Work Shift: ..."), not a single string
-   — js/careers.js clones that structure as-is rather than flattening
-   it to text, so each fact keeps its own line here too. Optional:
-   simply absent (no reserved space, see above) on a posting that
-   hasn't authored .dgs-career-meta yet. */
-.blog-html-container-single > .dgs-car-meta-line {
+/* Description: js/dgs-careers.js inserts this from the post's own
+   <meta name="description"> — real per-posting SEO data, not
+   invented copy; confirmed identical to that job's listing-card
+   excerpt text. Sits directly below the title (order:4) — the
+   project's own correction, 2026-09-19: the metadata line that used
+   to sit here (Work Setup/Work Shift) was removed from the hero
+   entirely and now stays in the article body where the author
+   actually writes it (see .dgs-career-post .dgs-career-meta below).
+   Optional: simply absent (no reserved space) if the posting has no
+   meta description. NO max-width here — the shared padding formula
+   above already centers a readable measure; stacking a max-width on
+   top of that previously collapsed the content area to ~0 and forced
+   the text to wrap one character per line (root cause found and
+   fixed, 2026-09-18). */
+.blog-html-container-single > .dgs-car-dek {
   order: 4;
   padding-top: 0 !important;
-  padding-bottom: 1rem !important;
-  /* margin-TOP/BOTTOM only — see the same note on .blog-content-title
-     above; `margin: 0 !important` here would cancel this element's
-     own full-bleed margin-left/margin-right too. */
-  margin-top: 0 !important;
-  margin-bottom: 0 !important;
-  font-family: var(--font-body) !important;
-  font-size: 0.88rem !important;
-  font-weight: 600 !important;
-  color: rgba(255, 255, 255, 0.72) !important;
-}
-
-.blog-html-container-single > .dgs-car-meta-line span {
-  display: block;
-}
-
-.blog-html-container-single > .dgs-car-meta-line span:not(:last-child) {
-  margin-bottom: 0.25rem;
-}
-
-/* Description: js/careers.js inserts this from the post's own
-   <meta name="description"> — same proven technique as .dgs-ga-dek
-   in dgs-growth-article.css (real per-post SEO data, not invented).
-   Optional: simply absent (no reserved space) if the posting has no
-   meta description. The short centered accent line (::before) is the
-   hero's divider, separating the metadata above from the description
-   — same teal accent already used sitewide for short dividers/
-   underlines, adapted for a centered composition instead of
-   Growth Article's own full-width border-top (which reads correctly
-   in a left-aligned hero but would look like a stray edge-to-edge
-   line here). */
-.blog-html-container-single > .dgs-car-dek {
-  order: 5;
-  padding-top: 0 !important;
   padding-bottom: 2.75rem !important;
-  /* margin-TOP/BOTTOM only, never the `margin` shorthand — same
-     mistake as .blog-content-title/.dgs-car-meta-line above:
-     `margin: 0 !important` also zeroes margin-left/margin-right,
-     cancelling THIS element's own full-bleed breakout
-     (margin-left/right: calc(50% - 50vw) from the shared rule) and
-     leaving it in its normal, non-full-bleed position — a narrower
-     box that visibly floats below/left of the rest of the hero
-     instead of sitting flush inside it. */
-  margin-top: 0 !important;
-  margin-bottom: 0 !important;
-  /* NO max-width here: this element is also in the shared full-bleed
-     selector above, which already sets width:100vw (border-box) plus
-     a padding formula that centers a ~48rem reading column on its
-     own. Stacking `max-width: 42rem` on top of that made the browser
-     resolve width down to 42rem FIRST, and the huge (up to ~36rem/side
-     on wide desktop) padding from the formula then ate the entire
-     42rem box, collapsing the content area to ~0 — every browser
-     response to that is to wrap text one character per line, which is
-     the "vertical letter-by-letter" hero description bug. The padding
-     formula alone already produces the intended centered measure. */
+  margin: 0 !important;
   font-family: var(--font-body) !important;
   font-size: 1rem !important;
   line-height: 1.6 !important;
@@ -448,17 +404,25 @@
   line-height: 1.65;
 }
 
+/* Visible in the article body, exactly where the author writes it
+   (explicit correction, 2026-09-19 — this used to be relocated into
+   the hero via JS; it isn't anymore). Confirmed live (Account Manager
+   posting) as a <div> with one <span> per fact ("Work Set up: ..." /
+   "Work Shift: ..."), matching the author's own already-established
+   convention — styled here to match that exact treatment so future
+   postings don't need to paste their own <style> block for it. */
 .dgs-career-post .dgs-career-meta {
-  /* Hidden in place: js/careers.js relocates a clone into the hero
-     as .dgs-car-meta-line. The author-authored original stays here,
-     invisible, so the content is never duplicated on screen but is
-     still real markup a screen reader / no-JS fallback can reach. */
-  position: absolute;
-  width: 1px;
-  height: 1px;
-  overflow: hidden;
-  clip: rect(0, 0, 0, 0);
-  white-space: nowrap;
+  font-size: 0.875rem;
+  font-weight: 700;
+  color: var(--car-teal);
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  line-height: 1.6;
+  margin: 0 0 1.5rem;
+}
+
+.dgs-career-post .dgs-career-meta span {
+  display: block;
 }
 
 .dgs-career-post .dgs-career-lead {
