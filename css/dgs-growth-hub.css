@@ -288,41 +288,46 @@
 }
 
 /* ─── JUMP NAV (Growth Hub Section Navigation) ─── */
-/* position:fixed, not sticky (2026-09-19 fix): a sticky element can
-   only stay stuck as long as its own containing block (practically,
-   its nearest block ancestor — here that's <main>) hasn't scrolled
-   past; it unsticks the moment it hits that ancestor's bottom edge.
-   The Learn/Implement/Connect blog widgets are NOT inside <main> at
-   all — confirmed elsewhere in this file (GROWTH HUB FIX 3's own
-   comment): GHL renders each one as its own top-level page Section, a
-   sibling of <main>. Once scroll reaches that boundary, <main>'s own
-   box has effectively run out for sticky's purposes even though there
-   is visibly more page below, and the nav gets released — exactly the
-   reported "stops being sticky at the Learn widget." fixed sidesteps
-   this entirely: it's anchored to the viewport, not to any ancestor's
-   box, so it stays pinned for the life of the page regardless of
-   where GHL's own separate Sections fall in the DOM. z-index raised
-   well above any GHL-generated section's own (typically unspecified,
-   default-stacking) elements for the same reason. Since fixed removes
-   the nav from normal flow (sticky, even unstuck, still reserved its
-   own height), the rule below it restores that reserved space so
-   whatever follows doesn't jump up underneath it. */
+/* position:sticky is the correct DEFAULT behavior (2026-09-19,
+   corrected after the fixed-from-load attempt above pinned it to the
+   viewport from page load, which is wrong — it needs to start in its
+   normal place and only stick once scroll reaches it). The bug this
+   was chasing is real, but the actual fix now lives in JS, not CSS:
+   GHL splits our authored <main> at the first native blog widget it
+   renders as its own top-level Section (confirmed sitewide — Career
+   Detail's own <main> renders completely empty for the identical
+   reason), so <main>'s real box — the containing block sticky is
+   constrained by — ends right around the Learn widget even though
+   there is much more page below. CSS position:sticky has no way to
+   see past that boundary. A small inline <script> at the bottom of
+   growth-hub.html measures this nav's natural (in-flow) offset once,
+   then past that point adds .dgs-hub-jumpnav--pinned
+   (position:fixed, which IS anchored to the viewport and immune to
+   the containing-block truncation) instead of relying on sticky for
+   that part — see that script's own comment for the full mechanism.
+   z-index stays BELOW the main site header's (100, css/dgs-common.css)
+   so the header is never covered, matching the explicit requirement
+   that it must always render on top of this nav. */
 .dgs-hub-jumpnav {
-  position: fixed;
+  position: sticky;
   top: 0;
   left: 0;
   width: 100%;
-  z-index: 9999;
+  z-index: 99;
   background: #0A1F33;
   border-bottom: 1px solid var(--hub-card-border, rgba(255, 255, 255, 0.08));
 }
 
-/* Best-effort spacer matching the jumpnav's own rendered height
-   (~54px desktop: 1rem top+bottom padding + ~21px line-height + 1px
-   border) — not measured live, so treat as an estimate to nudge if
-   there's a visible gap or overlap once deployed. */
-.dgs-hub-jumpnav + * {
-  margin-top: 54px;
+.dgs-hub-jumpnav--pinned {
+  position: fixed !important;
+}
+
+/* Dedicated spacer the script creates right after the nav — reserves
+   its exact rendered height (measured live, never a guessed px value)
+   only while pinned, so nothing jumps up underneath it. */
+.dgs-hub-jumpnav-spacer {
+  width: 100%;
+  height: 0;
 }
 
 .dgs-hub-jumpnav-row {
@@ -376,16 +381,10 @@
 /* Mobile Layout (< 768px) */
 @media (max-width: 768px) {
   .dgs-hub-jumpnav {
-    position: fixed;
+    position: sticky;
     top: 0;
-    z-index: 9999;
+    z-index: 99;
     background: #0A1F33;
-  }
-
-  /* Mobile's own row padding (0.75rem 1.25rem) is slightly shorter
-     than desktop's — same estimate caveat as the desktop rule. */
-  .dgs-hub-jumpnav + * {
-    margin-top: 46px;
   }
 
   .dgs-hub-jumpnav-row {
