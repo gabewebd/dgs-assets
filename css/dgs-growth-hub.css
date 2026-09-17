@@ -1511,5 +1511,109 @@
    rule itself stays untouched. */
 .dgs-page .blog-title {
   font-size: clamp(20px, 1.6vw, 22px) !important;
+  /* Full title treatment, copied from the Careers listing widget's
+     own h2.blog-title fix (css/dgs-careers.css — same native GHL blog
+     widget family, confirmed: both render <h2 class="blog-title ...">
+     via the same Compact List widget). Font-size above is unchanged
+     (this page's own confirmed live value); everything else brings
+     the DGS heading treatment (Sora, weight, navy, tight tracking)
+     to a title that otherwise only had GHL's bare Tailwind defaults. */
+  font-family: var(--font-heading, 'Sora', sans-serif) !important;
+  font-weight: 800 !important;
+  letter-spacing: -0.015em !important;
+  text-transform: none !important;
+  line-height: 1.25 !important;
+  color: var(--bg-deep-navy, #0A1F33) !important;
+}
+
+.dgs-page .blog-title a {
+  color: inherit !important;
+  text-decoration: none !important;
+  transition: color 0.3s ease;
+}
+
+.dgs-page .blog-post-wrapper-compact:hover .blog-title a {
+  color: var(--action-teal, #00b39f) !important;
+}
+
+/* GROWTH HUB FIX 4: PAGINATION — copied from the Careers listing
+   widget (css/dgs-careers.css .pagination-container/.pagination-button
+   — same native GHL Previous/1/2/3/Next widget). GHL drives the
+   disabled/active state itself; this only restyles it. */
+.dgs-page .pagination-container {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  margin-top: 3rem;
+}
+
+.dgs-page .pagination-button {
+  font-family: var(--font-body, 'Inter', sans-serif);
+  font-size: 0.9rem;
+  font-weight: 600;
+  color: var(--text-dark-muted, #5a6e85);
+  background: transparent;
+  border: 1px solid #E2E8F0;
+  border-radius: var(--radius-md, 6px);
+  padding: 0.5rem 0.9rem;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.dgs-page .pagination-button:disabled {
+  opacity: 0.4;
+  cursor: default;
+}
+
+.dgs-page .pagination-button.active {
+  color: #ffffff;
+  background: var(--action-teal, #00b39f);
+  border-color: var(--action-teal, #00b39f);
+}
+
+.dgs-page .pagination-button:not(:disabled):hover {
+  border-color: var(--action-teal, #00b39f);
+  color: var(--action-teal, #00b39f);
+}
+
+/* GROWTH HUB FIX 5: "READ MORE" — right-aligned, teal only on hover
+   (deliberately different from the Careers version this is copied
+   from: Careers keeps its Read More teal at rest, this one stays the
+   body-copy ink color at rest and only switches to teal on hover).
+   :has() scoped to the specific wrapping .flex div the button sits
+   alone in (confirmed live) so this can't catch any other "flex"
+   utility div GHL's widget uses elsewhere on the same card. */
+.dgs-page .content-width-compact > .flex:has(> .readme-btn) {
+  display: flex;
+  width: 100%;
+  justify-content: flex-end;
+}
+
+.dgs-page a.blog-button.readme-btn {
+  font-family: var(--font-body, 'Inter', sans-serif) !important;
+  font-size: 0.95rem !important;
+  font-weight: 650 !important;
+  color: var(--bg-deep-navy, #0A1F33) !important;
+  text-decoration: none !important;
+  display: inline-flex !important;
+  align-items: center !important;
+  gap: 0.4rem !important;
+  margin-top: 0.5rem !important;
+  transition: color 0.25s ease;
+}
+
+.dgs-page a.blog-button.readme-btn:hover {
+  color: var(--action-teal, #00b39f) !important;
+}
+
+.dgs-page a.blog-button.readme-btn svg {
+  width: 18px !important;
+  height: 18px !important;
+  stroke: currentColor !important;
+  transition: transform 0.25s ease;
+}
+
+.dgs-page a.blog-button.readme-btn:hover svg {
+  transform: translateX(4px);
 }
 

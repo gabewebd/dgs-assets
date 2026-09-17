@@ -196,25 +196,23 @@
     });
   }
 
-  /* ─── GHL: move "Back to Top" inside the article body ───
-     GHL renders .hl-blog-content-back-to-top-container as a sibling
-     of .blog-html (the white article body), directly under
-     .blog-html-container-single — confirmed live. Visually that made
-     it read as its own separate section below the white card instead
-     of belonging to the article. This reparents the REAL existing
-     node (never a clone/duplicate) to be the last child of .blog-html
-     itself, so it sits inside the same white background as the rest
-     of the article content, as its final element. Idempotent: no-ops
-     once the node is already inside .blog-html, so the shared
-     MutationObserver can call this on every GHL hydration pass
-     without moving it back and forth. */
-  function moveBackToTop() {
-    var content = document.querySelector('.blog-html-container-single > .blog-html');
-    var container = document.querySelector('.blog-html-container-single > .hl-blog-content-back-to-top-container');
-    if (!content || !container) return;
-    if (content.contains(container)) return;
-    content.appendChild(container);
-  }
+  /* ─── GHL: "Back to Top" — reparenting into .blog-html REVERTED ───
+     Tried moving the real .hl-blog-content-back-to-top-container node
+     into .blog-html (#blogPostContent) so it would visually belong to
+     the article body — confirmed live this made the button disappear
+     entirely. Root cause: #blogPostContent's content is rendered by
+     GHL's own Vue component; a plain appendChild() isn't tracked by
+     Vue's virtual DOM, so the next time GHL re-renders that region
+     (its normal hydration behavior, confirmed elsewhere in this file)
+     Vue patches the container back to what ITS OWN template expects
+     and discards the node we injected — it doesn't know we put it
+     there. .blog-html-container-single's own direct children (where
+     buildHeroInner() operates) don't show this symptom, so the Vue-
+     managed boundary is specifically at/inside #blogPostContent, not
+     the whole hero. The button now stays in its real, native position
+     (a sibling of .blog-html) and is made to visually belong to the
+     article purely with CSS (see dgs-careers-detail.css) — no DOM
+     move, nothing for GHL's own render pass to fight. */
 
   /* ─── On This Page (TOC): deliberately not built ───
      Career Detail pages never show a table of contents (explicit
@@ -268,7 +266,6 @@
     renameBackButton();
     updateProgress();
     fixBackToTop();
-    moveBackToTop();
     flattenGridCards();
   }
 
