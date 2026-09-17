@@ -180,18 +180,20 @@
    nodes into it, then insertDek() appends the description as its
    last child — so back-link, category, title and description are
    ACTUAL SIBLINGS inside one element, not four independent hero
-   children each computing their own width. This wrapper is the only
-   place readable content width is decided (`width: min(100% - 3rem,
-   48rem)` + auto margins — a fixed max measure with a guaranteed
-   minimum gutter, no viewport units, no dependency on how wide any
-   ancestor happens to render). Everything inside it just stacks in
-   normal document flow, in the order buildHeroInner() puts them in —
-   no CSS `order` needed anymore, because DOM order finally matches
-   visual order. Do NOT re-introduce a per-child width/background/
-   padding system here: that's the exact design (tried and abandoned)
-   that let hero elements drift out of sync under different GHL
-   page-builder states and produced the mismatched-box and
-   collapsing-text bugs seen live. One wrapper, one width formula. */
+   children each computing their own width.
+
+   LEFT EDGE = THE ARTICLE BODY'S OWN CONTENT WIDTH, reused exactly
+   (2026-09-19 correction — previously centered at a different, hero-
+   only measure). .dgs-career-post (the white article body's content
+   wrapper, below) is `max-width: 840px; margin: 0 auto`. .dgs-car-
+   hero-inner uses that identical max-width + the identical 0/1rem
+   horizontal padding .blog-html applies around it, so both boxes
+   resolve to the exact same left edge at every viewport width — not
+   two independent measurements that happen to agree. Do NOT give the
+   four hero children their own separate width/padding/margin system:
+   that's the exact design (tried and abandoned) that let them drift
+   out of sync under different GHL page-builder states. One wrapper,
+   one width formula, reused from the one source of truth. */
 .blog-html-container-single {
   position: relative;
   background-color: var(--car-navy) !important;
@@ -215,16 +217,27 @@
   position: relative;
   z-index: 1;
   box-sizing: border-box;
-  width: min(100% - 3rem, 48rem);
+  max-width: 840px;
   margin: 0 auto;
-  padding: 8.5rem 0 2.75rem;
-  text-align: center;
+  padding: 8.5rem 1rem 2.75rem;
+  text-align: left;
+}
+
+/* Same breakpoint .blog-html below drops its own horizontal padding
+   at — .dgs-career-post is only ever constrained by its own
+   max-width past this point, never by a parent's padding, so this
+   has to match exactly for the two left edges to stay identical. */
+@media (min-width: 768px) {
+  .dgs-car-hero-inner {
+    padding-left: 0;
+    padding-right: 0;
+  }
 }
 
 .dgs-car-hero-inner > .blog-back-button {
   display: flex !important;
   align-items: center;
-  justify-content: center;
+  justify-content: flex-start;
   box-sizing: border-box;
   width: 100% !important;
   gap: 0.4rem;
@@ -264,7 +277,7 @@
 .dgs-car-hero-inner > .meta-section-1:has(.blog-category) {
   box-sizing: border-box;
   width: 100% !important;
-  text-align: center !important;
+  text-align: left !important;
   padding: 0 !important;
   margin: 0 0 1rem !important;
 }
@@ -284,7 +297,7 @@
 .dgs-car-hero-inner > .blog-content-title {
   box-sizing: border-box;
   width: 100% !important;
-  text-align: center !important;
+  text-align: left !important;
   padding: 0 !important;
   margin: 0 0 1.25rem !important;
   font-family: var(--font-heading) !important;
@@ -304,7 +317,7 @@
 .dgs-car-hero-inner > .dgs-car-dek {
   box-sizing: border-box;
   width: 100% !important;
-  text-align: center !important;
+  text-align: left !important;
   padding: 0 !important;
   margin: 0 !important;
   font-family: var(--font-body) !important;
@@ -318,7 +331,7 @@
   display: block;
   width: 48px;
   height: 2px;
-  margin: 0 auto 1.5rem;
+  margin: 0 0 1.5rem;
   background: var(--car-teal);
 }
 
@@ -359,10 +372,18 @@
 }
 
 .dgs-career-post {
-  /* Body content stays left-aligned prose (the hero's centering lives
-     on .dgs-car-hero-inner, a sibling of .blog-html, so it never
-     cascades down here — this is just a defensive explicit default,
-     "do not redesign the existing body"). */
+  /* max-width/margin made authoritative here (2026-09-19) — every
+     live posting checked so far (AI Systems Engineer, Account
+     Manager, BIM Modeler) pastes this exact same 840px/auto pair in
+     its own per-post <style> block, so this isn't a new value, just
+     centralizing the existing convention. This is also now the
+     single source of truth .dgs-car-hero-inner's own max-width reuses
+     to keep the hero's left edge identical to the article's — future
+     postings should stop pasting their own copy of this rule (paste
+     clean HTML only, per the file header), but a posting that still
+     does is harmless as long as it keeps using the same value. */
+  max-width: 840px;
+  margin: 0 auto;
   text-align: left;
   font-family: var(--font-body, 'Inter', sans-serif);
   color: var(--car-ink);
