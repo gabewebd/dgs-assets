@@ -1,4 +1,75 @@
 /* ============================================================
+   STATIC CAREERS DETAIL PAGES (careers/*.html)
+   ------------------------------------------------------------
+   These rules style the 3 existing static per-job pages
+   (careers/ai-systems-engineer.html, careers/operations-associate.html,
+   careers/crm-automation-developer.html) — migrated from inline
+   style="" attributes on those pages, hence the .dgs-il-* (inline)
+   naming. Do NOT remove these: all 3 static pages load this file
+   directly and depend on these exact class names. Everything below
+   this block, under "DGS CAREERS — DETAIL TEMPLATE", is a separate,
+   additive section for career-blog.html's GHL-native template and
+   does not replace or touch these.
+   ============================================================ */
+.dgs-il-642ac55600 {
+  padding: 9rem 0 3.5rem !important;
+  background: #0A1F33 !important;
+  color: #ffffff !important;
+}
+
+.dgs-il-d260492821 {
+  display: block !important;
+  color: var(--action-teal) !important;
+  font-weight: 600 !important;
+  text-decoration: none !important;
+  margin-bottom: 1.75rem !important;
+}
+
+.dgs-il-7e617631ae {
+  margin-top: 0.75rem !important;
+  color: #ffffff !important;
+  font-size: clamp(2.2rem, 4vw, 3.4rem) !important;
+}
+
+.dgs-il-621408cb65 {
+  margin-top: 1.25rem !important;
+  font-size: 1.05rem !important;
+  color: rgba(255, 255, 255, 0.78) !important;
+}
+
+.dgs-il-a747c5ebad {
+  padding: 4rem 0 6rem !important;
+  background: #ffffff !important;
+  color: #0A1F33 !important;
+}
+
+.dgs-il-444c6cf9a2 {
+  font-size: 1.4rem !important;
+}
+
+.dgs-il-fdf48aefcd {
+  margin-top: 1rem !important;
+  padding-left: 1.25rem !important;
+  color: var(--text-dark-muted) !important;
+  line-height: 1.9 !important;
+}
+
+.dgs-il-7572487128 {
+  margin-top: 3rem !important;
+  font-size: 1.4rem !important;
+}
+
+.dgs-il-c4773bee52 {
+  margin-top: 3rem !important;
+  font-size: 1.05rem !important;
+}
+
+.dgs-il-270edf33ee {
+  color: var(--action-teal) !important;
+  font-weight: 700 !important;
+}
+
+/* ============================================================
    DGS CAREERS — DETAIL TEMPLATE (career-blog.html)
    ------------------------------------------------------------
    Styles the NATIVE GHL Blog Post widget (Careers jobs are a GHL

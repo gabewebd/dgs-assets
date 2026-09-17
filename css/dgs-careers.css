@@ -359,6 +359,26 @@
   display: block;
 }
 
+/* Defensive background reset — NOT tied to the compact-list layout
+   below. GHL's blog-list widget ships its own default post/card
+   background as part of the widget's theme, independent of which
+   "layout" style (Compact List, Standard, Grid, …) is selected in
+   the GHL editor; confirmed live 2026-09-17 that switching the
+   layout to "Standard" made this whole section render navy even
+   though #careers-hub is .dgs-section--light (white) in the shell.
+   Scoped to the outer wrapper levels only (never a wildcard
+   descendant selector) so it can't fight whatever background an
+   individual card legitimately needs — this only clears bleed from
+   ancestors/rows, not from the card unit itself. !important because
+   GHL blog-widget theme colors are commonly applied as an inline
+   style, which only an !important external rule can override. */
+.dgs-roles-list.dgs-ghl-native-listing-slot,
+.dgs-roles-list.dgs-ghl-native-listing-slot .hl-blog-post-home,
+.dgs-roles-list.dgs-ghl-native-listing-slot .hl-blog-post-home > .flex.flex-wrap {
+  background-color: transparent !important;
+  background-image: none !important;
+}
+
 .hl-blog-post-home > .flex.flex-wrap {
   display: grid;
   grid-template-columns: 1fr;
