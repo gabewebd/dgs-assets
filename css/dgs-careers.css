@@ -406,6 +406,31 @@
   background-image: none !important;
 }
 
+/* WIDTH FIX (confirmed root cause of the grid rendering as narrow,
+   left-stuck columns with a huge empty gap on the right, 2026-09-18):
+   .hl-blog-post-home's own ancestor chain — .vertical.inner, the
+   column/row/section wrappers GHL's page builder puts around every
+   Custom Code element — defaults to shrink-to-fit sizing (a builder
+   "column" only stretches to its parent's full width when the
+   element inside is explicitly full-width; nothing here tells it
+   to be). My grid-template-columns below was already correct, but a
+   3-equal-column grid inside a shrink-wrapped, content-width
+   container still renders as 3 narrow columns bunched at the start
+   of the row — exactly the reported symptom. Forcing width:100% up
+   the same stable ancestor chain already used for the background fix
+   (never the random per-element ID classes, which GHL regenerates on
+   every edit) makes the whole chain stretch to the real available
+   content width before the grid ever divides it into 3 columns. */
+.fullSection:has(.hl-blog-post-home),
+.c-row:has(.hl-blog-post-home),
+.c-column:has(.hl-blog-post-home),
+.c-custom-code:has(.hl-blog-post-home),
+.custom-code-container:has(.hl-blog-post-home),
+.vertical.inner:has(.hl-blog-post-home) {
+  width: 100% !important;
+  max-width: 100% !important;
+}
+
 /* Belt-and-suspenders: GHL's own scoped style already sets this
    widget's background to white (confirmed:
    .hl-blog-post-home{background-color:#ffffffff} in the live page's
@@ -414,23 +439,30 @@
    or reordered. */
 .hl-blog-post-home {
   background-color: #ffffff !important;
+  width: 100% !important;
 }
 
+/* 3 columns x however many rows GHL's own pagination provides — the
+   page-size (6 per page, or whatever the widget's own "posts per
+   page" setting is set to in GHL) is controlled entirely by GHL, not
+   by this CSS or by any JS in this repo. This grid just lays out
+   however many cards are actually present on any given page. */
 .hl-blog-post-home > .flex.flex-wrap {
-  display: grid;
+  display: grid !important;
   grid-template-columns: 1fr;
   gap: 1.5rem;
+  width: 100%;
 }
 
 @media (min-width: 700px) {
   .hl-blog-post-home > .flex.flex-wrap {
-    grid-template-columns: repeat(2, 1fr);
+    grid-template-columns: repeat(2, minmax(0, 1fr));
   }
 }
 
 @media (min-width: 1100px) {
   .hl-blog-post-home > .flex.flex-wrap {
-    grid-template-columns: repeat(3, 1fr);
+    grid-template-columns: repeat(3, minmax(0, 1fr));
   }
 }
 
@@ -439,10 +471,17 @@
    posting; if a listing with 2+ jobs ever shows the repeat happening
    one level down instead, on .blog-post-wrapper-compact-list, move
    these box rules there — .content-width-compact/.blog-title/etc.
-   below are unaffected either way). */
+   below are unaffected either way). minmax(0,1fr) on the grid
+   columns (not plain 1fr) plus min-width:0 here matters specifically
+   because this card contains long unbroken text (job titles) — a
+   plain 1fr grid track won't shrink narrower than its content's
+   intrinsic min-content width by default, which silently overrides
+   equal column widths the moment a title is longer than the others. */
 .blog-post-wrapper-compact {
   display: flex;
   flex-direction: column;
+  min-width: 0;
+  width: 100%;
   background: #ffffff;
   border: 1px solid #E2E8F0;
   border-radius: var(--radius-xl, 16px);
@@ -459,14 +498,32 @@
 
 .blog-post-wrapper-compact .blog-compact-content {
   display: flex;
+  width: 100%;
 }
 
+/* GHL's own compact-list theme (BlogHome.hoI8HRLt.css, confirmed)
+   sets .content-width-compact{max-width:60%;width:60%} — a leftover
+   from that layout's image-plus-text row (60% text / 40% image);
+   every Careers card has no image, so this reserved the other 40% as
+   dead space inside each card. Same specificity family, so this
+   selector (2 classes) already outranks GHL's own (1 class) without
+   needing !important — restated here for clarity, not as a fight. */
 .blog-post-wrapper-compact .content-width-compact {
   display: flex;
   flex-direction: column;
   gap: 0.65rem;
   padding: 2rem;
   width: 100%;
+  max-width: 100%;
+}
+
+/* The empty second column .content-width-compact used to share the
+   row with — GHL's reserved image slot, confirmed empty
+   (<div><a href="..."><!----></a></div>) on every Careers posting
+   since none has a featured image. Hidden outright so it can't
+   reserve any width at all next to the 100% text column above. */
+.blog-post-wrapper-compact .blog-compact-content > div:not(.content-width-compact) {
+  display: none !important;
 }
 
 /* Category/date meta slot: empty on the one confirmed live posting

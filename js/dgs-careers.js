@@ -102,9 +102,19 @@
     var metaSrc = post && post.querySelector('.dgs-career-meta');
     if (!hero || !title || !metaSrc || !metaSrc.textContent.trim()) return;
     if (hero.querySelector(':scope > .dgs-car-meta-line')) return;
-    var meta = document.createElement('p');
+    var meta = document.createElement('div');
     meta.className = 'dgs-car-meta-line';
-    meta.textContent = metaSrc.textContent.trim();
+    /* Confirmed live (Account Manager posting, 2026-09-18):
+       .dgs-career-meta is authored as several <span> lines (e.g.
+       "Work Set up: ..." / "Work Shift: ..."), not one string —
+       .textContent would concatenate them with no separator at all.
+       Cloning the real child nodes preserves each fact as its own
+       line; a plain-text posting (no <span> children) still works
+       since cloning a single text node behaves the same as copying
+       its text. */
+    Array.prototype.forEach.call(metaSrc.childNodes, function (node) {
+      meta.appendChild(node.cloneNode(true));
+    });
     hero.insertBefore(meta, title.nextSibling);
   }
 

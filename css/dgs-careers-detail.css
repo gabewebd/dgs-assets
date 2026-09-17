@@ -148,6 +148,8 @@
   position: relative;
   display: grid;
   grid-template-columns: minmax(0, 1fr);
+  justify-items: center;
+  text-align: center;
 }
 
 /* ---------------------------------------------------------
@@ -221,6 +223,7 @@
   order: 1;
   display: flex !important;
   align-items: center;
+  justify-content: center;
   gap: 0.4rem;
   padding-top: 8.5rem !important;
   padding-bottom: 1.75rem !important;
@@ -285,14 +288,18 @@
   color: #ffffff !important;
 }
 
-/* Meta line (Location · Employment Type): a real element
-   js/careers.js relocates from the job's own custom-code content
-   (.dgs-career-post > .dgs-career-meta, authored once per posting,
-   same mechanism the lead paragraph/responsibilities already use —
-   GHL has no dedicated Location/Employment Type field to read
-   instead, confirmed against the live posting) up into the hero.
-   Optional: simply absent (no reserved space, see above) on a
-   posting that hasn't authored .dgs-career-meta yet. */
+/* Meta line (Location / Employment Type / Work Shift, etc.): a real
+   element js/careers.js relocates from the job's own custom-code
+   content (.dgs-career-post > .dgs-career-meta, authored once per
+   posting — GHL has no dedicated Location/Employment Type field to
+   read instead, confirmed against three separate live postings).
+   Confirmed live usage (Account Manager posting, 2026-09-18) authors
+   this as a <div> with multiple <span> lines, one per metadata fact
+   (e.g. "Work Set up: ..." / "Work Shift: ..."), not a single string
+   — js/careers.js clones that structure as-is rather than flattening
+   it to text, so each fact keeps its own line here too. Optional:
+   simply absent (no reserved space, see above) on a posting that
+   hasn't authored .dgs-career-meta yet. */
 .blog-html-container-single > .dgs-car-meta-line {
   order: 4;
   padding-top: 0 !important;
@@ -304,20 +311,44 @@
   color: rgba(255, 255, 255, 0.72) !important;
 }
 
+.blog-html-container-single > .dgs-car-meta-line span {
+  display: block;
+}
+
+.blog-html-container-single > .dgs-car-meta-line span:not(:last-child) {
+  margin-bottom: 0.25rem;
+}
+
 /* Description: js/careers.js inserts this from the post's own
    <meta name="description"> — same proven technique as .dgs-ga-dek
    in dgs-growth-article.css (real per-post SEO data, not invented).
    Optional: simply absent (no reserved space) if the posting has no
-   meta description. */
+   meta description. The short centered accent line (::before) is the
+   hero's divider, separating the metadata above from the description
+   — same teal accent already used sitewide for short dividers/
+   underlines, adapted for a centered composition instead of
+   Growth Article's own full-width border-top (which reads correctly
+   in a left-aligned hero but would look like a stray edge-to-edge
+   line here). */
 .blog-html-container-single > .dgs-car-dek {
   order: 5;
   padding-top: 0 !important;
   padding-bottom: 2.75rem !important;
   margin: 0 !important;
+  max-width: 42rem;
   font-family: var(--font-body) !important;
   font-size: 1rem !important;
   line-height: 1.6 !important;
   color: rgba(255, 255, 255, 0.78) !important;
+}
+
+.blog-html-container-single > .dgs-car-dek::before {
+  content: '';
+  display: block;
+  width: 48px;
+  height: 2px;
+  margin: 0 auto 1.5rem;
+  background: var(--car-teal);
 }
 
 /* Publish date + featured image: no static-design counterpart for a
@@ -344,6 +375,7 @@
   box-sizing: border-box;
   width: 100%;
   padding: 3rem 1rem 1rem;
+  text-align: left;
 }
 
 @media (min-width: 768px) {
@@ -353,6 +385,11 @@
 }
 
 .dgs-career-post {
+  /* Resets the centered text-align inherited from
+     .blog-html-container-single (the hero above is centered per the
+     brief; the body content below stays left-aligned prose, same as
+     it's always been — "do not redesign the existing body"). */
+  text-align: left;
   font-family: var(--font-body, 'Inter', sans-serif);
   color: var(--car-ink);
   line-height: 1.65;
@@ -451,6 +488,32 @@
 .dgs-career-apply-btn:hover {
   transform: translateY(-2px);
   box-shadow: 0 10px 24px rgba(0, 179, 159, 0.28);
+}
+
+/* .dgs-career-cta: the REAL class confirmed in live use (Account
+   Manager posting, 2026-09-18) — "Interested? Apply for this role →
+   or email talent@...", authored as a plain <p> with two <a> links
+   and no styling of its own, so it rendered as unstyled default
+   browser link text. Not invented; this is the actual apply-CTA
+   convention already adopted for real postings, styled here to match
+   the rest of .dgs-career-post instead of introducing a second,
+   competing "official" apply component. */
+.dgs-career-cta {
+  margin: 2.75rem 0 0 !important;
+  padding-top: 1.75rem;
+  border-top: 1px solid var(--car-hairline);
+  font-size: 1rem !important;
+  color: var(--car-muted) !important;
+}
+
+.dgs-career-cta a {
+  color: var(--car-teal) !important;
+  font-weight: 700 !important;
+  text-decoration: none !important;
+}
+
+.dgs-career-cta a:hover {
+  text-decoration: underline !important;
 }
 
 /* ---------------------------------------------------------
