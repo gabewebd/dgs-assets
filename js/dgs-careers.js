@@ -160,8 +160,7 @@
      was proven insufficient there (GHL's Vue @click binding is
      attached directly to the button node), so this removes it
      outright by replacing the node with a clone. Lands on the job
-     content's first H2 (matching whatever the on-page TOC's first
-     entry points to), falling back to window top when the posting
+     content's first H2, falling back to window top when the posting
      has no headings. */
   function fixBackToTop() {
     var btn = document.querySelector('.hl-blog-content-back-to-top-container .back-to-top');
@@ -181,84 +180,17 @@
     });
   }
 
-  /* ─── On This Page (TOC) ───
-     Built only when the posting actually has 2+ H2 sections — a
-     single-section job posting doesn't justify a sidebar nav (see
-     project brief: "if the structure doesn't have enough content,
-     don't force a TOC"). */
-  function buildToc() {
-    var post = getCareerPost();
-    if (!post || document.querySelector('.dgs-car-toc')) return;
-    var headings = Array.prototype.slice.call(post.querySelectorAll('h2'));
-    if (headings.length < 2) return;
-
-    var slugify = function (text) {
-      return text.toLowerCase().trim()
-        .replace(/[^a-z0-9\s-]/g, '')
-        .replace(/\s+/g, '-')
-        .replace(/-+/g, '-') || 'section';
-    };
-    var usedIds = {};
-    var listItems = headings.map(function (h) {
-      var base = h.id || slugify(h.textContent);
-      var id = base;
-      var n = 2;
-      while (usedIds[id]) { id = base + '-' + (n++); }
-      usedIds[id] = true;
-      h.id = id;
-
-      var a = document.createElement('a');
-      a.href = '#' + id;
-      a.textContent = h.textContent;
-      var li = document.createElement('li');
-      li.appendChild(a);
-      return li;
-    });
-
-    var toc = document.createElement('aside');
-    toc.className = 'dgs-car-toc';
-    toc.setAttribute('data-car-toc', '');
-    toc.innerHTML = '<span class="dgs-car-toc-label">On This Page</span>';
-    var list = document.createElement('ul');
-    list.className = 'dgs-car-toc-list';
-    listItems.forEach(function (li) { list.appendChild(li); });
-    toc.appendChild(list);
-
-    post.parentNode.insertBefore(toc, post);
-  }
-
-  function wireToc() {
-    var toc = document.querySelector('[data-car-toc]');
-    if (!toc || toc.getAttribute('data-wired')) return;
-    toc.setAttribute('data-wired', '1');
-
-    var tocLinks = Array.prototype.slice.call(toc.querySelectorAll('a[href^="#"]'));
-    var headings = tocLinks
-      .map(function (link) { return document.getElementById(link.getAttribute('href').slice(1)); })
-      .filter(Boolean);
-
-    if (headings.length && 'IntersectionObserver' in window) {
-      var headingObserver = new IntersectionObserver(function (entries) {
-        entries.forEach(function (entry) {
-          if (!entry.isIntersecting) return;
-          var id = entry.target.id;
-          tocLinks.forEach(function (link) {
-            link.classList.toggle('is-active', link.getAttribute('href') === '#' + id);
-          });
-        });
-      }, { rootMargin: '-15% 0px -70% 0px', threshold: 0 });
-
-      headings.forEach(function (h) { headingObserver.observe(h); });
-    }
-  }
+  /* ─── On This Page (TOC): deliberately not built ───
+     Career Detail pages never show a table of contents (explicit
+     project decision, 2026-09-17) — removed outright rather than kept
+     as unused dead code. Growth Hub's own .dgs-ga-toc equivalent in
+     dgs-growth-article.js is untouched. */
 
   function syncGhlCareer() {
     insertMetaLine();
     insertDek();
     renameBackButton();
     updateProgress();
-    buildToc();
-    wireToc();
     fixBackToTop();
   }
 
@@ -285,17 +217,6 @@
      page for the life of that page. */
   syncGhlCareer();
   new MutationObserver(syncGhlCareer).observe(document.body, { childList: true, subtree: true });
-
-  /* ─── TOC link clicks: smooth-scroll accounting for the fixed navbar ─── */
-  document.addEventListener('click', function (e) {
-    var link = e.target.closest && e.target.closest('[data-car-toc] a[href^="#"]');
-    if (!link) return;
-    var target = document.getElementById(link.getAttribute('href').slice(1));
-    if (!target) return;
-    e.preventDefault();
-    e.stopPropagation();
-    scrollToTarget(target, TOC_SCROLL_OFFSET);
-  }, true);
 
   }); // whenReady
 })();

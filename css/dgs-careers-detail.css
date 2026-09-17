@@ -150,6 +150,19 @@
   grid-template-columns: minmax(0, 1fr);
   justify-items: center;
   text-align: center;
+  /* GHL's OWN base blog-widget stylesheet sets
+     `.blog-html-container-single { overflow: hidden; ... }` sitewide
+     (confirmed live, unscoped, on every published posting). That
+     clips the width:100vw full-bleed breakout below back down to this
+     element's own (ancestor-padded, ~1170px-max-width-centered) box —
+     so the navy hero band never actually reaches the viewport edge,
+     and GHL's OTHER live rule (`#blog-content-<id> .blog-html-container-single
+     { background-color:#fff }`) shows through as a plain white gap
+     wrapping the now-boxed-in navy content on every side: the
+     "invisible margin / white border around the hero" symptom. The
+     breakout technique only works if this container doesn't clip its
+     own children, so overflow must stay visible. */
+  overflow: visible !important;
 }
 
 /* ---------------------------------------------------------
@@ -335,7 +348,16 @@
   padding-top: 0 !important;
   padding-bottom: 2.75rem !important;
   margin: 0 !important;
-  max-width: 42rem;
+  /* NO max-width here: this element is also in the shared full-bleed
+     selector above, which already sets width:100vw (border-box) plus
+     a padding formula that centers a ~48rem reading column on its
+     own. Stacking `max-width: 42rem` on top of that made the browser
+     resolve width down to 42rem FIRST, and the huge (up to ~36rem/side
+     on wide desktop) padding from the formula then ate the entire
+     42rem box, collapsing the content area to ~0 — every browser
+     response to that is to wrap text one character per line, which is
+     the "vertical letter-by-letter" hero description bug. The padding
+     formula alone already produces the intended centered measure. */
   font-family: var(--font-body) !important;
   font-size: 1rem !important;
   line-height: 1.6 !important;
@@ -517,70 +539,15 @@
 }
 
 /* ---------------------------------------------------------
-   5. On This Page (TOC) — same idea as dgs-growth-article.css's
-   .dgs-ga-toc, own markup/class so that stylesheet stays untouched.
-   Only appears when js/careers.js finds 2+ H2s in .dgs-career-post
-   (a single H2 job posting doesn't justify a sidebar nav).
+   5. (removed) On This Page (TOC) — Career Detail pages deliberately
+   never show a table of contents (explicit project decision,
+   2026-09-17): unlike Growth Hub articles, a job posting's short
+   "About the job / Qualifications" structure doesn't warrant sidebar
+   nav, and it visually competed with the single-column hero. TOC
+   generation is fully disabled in js/dgs-careers.js (buildToc()/
+   wireToc() removed); no CSS is needed for a feature that no longer
+   runs.
 --------------------------------------------------------- */
-.blog-html-container-single :has(> .dgs-car-toc) {
-  display: grid;
-  grid-template-columns: minmax(0, 1fr);
-  gap: 2.5rem;
-  align-items: start;
-}
-
-@media (min-width: 960px) {
-  .blog-html-container-single :has(> .dgs-car-toc) {
-    grid-template-columns: 220px minmax(0, 1fr);
-  }
-}
-
-.dgs-car-toc {
-  order: -1;
-}
-
-@media (min-width: 960px) {
-  .dgs-car-toc {
-    position: sticky;
-    top: 6.5rem;
-    align-self: start;
-  }
-}
-
-.dgs-car-toc-label {
-  display: block;
-  font-family: var(--font-body);
-  font-size: 0.72rem;
-  font-weight: 700;
-  letter-spacing: 0.1em;
-  text-transform: uppercase;
-  color: var(--car-muted);
-  margin-bottom: 0.9rem;
-}
-
-.dgs-car-toc-list {
-  list-style: none;
-  margin: 0;
-  padding-left: 0.9rem;
-  border-left: 2px solid var(--car-hairline);
-  display: flex;
-  flex-direction: column;
-  gap: 0.65rem;
-}
-
-.dgs-car-toc-list a {
-  font-family: var(--font-body);
-  font-size: 0.9rem;
-  font-weight: 500;
-  color: var(--car-muted);
-  text-decoration: none;
-  transition: color 0.2s ease;
-}
-
-.dgs-car-toc-list a:hover,
-.dgs-car-toc-list a.is-active {
-  color: var(--car-navy);
-}
 
 /* ---------------------------------------------------------
    6. Tags / Back to Top
