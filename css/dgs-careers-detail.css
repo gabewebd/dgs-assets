@@ -357,12 +357,22 @@
   box-sizing: border-box;
   width: 100%;
   padding: 3rem 1rem 1rem;
+  margin: 0 !important;
   text-align: left;
   /* Opaque white "turns off" the container's own navy background for
      this region — a normal-flow child's own background always paints
      over its parent's, so this needs nothing fancier than a plain
-     background-color. */
-  background-color: #ffffff;
+     background-color. !important + explicit border-radius/border/
+     box-shadow resets (real bug, found live, 2026-09-19): without
+     them, a navy sliver showed between this and the Back to Top
+     container right after it, and the latter rendered as a separate
+     rounded "pill" instead of a continuous white area — GHL's own
+     per-template styles carry properties on these exact classes that
+     nothing here had zeroed yet. */
+  background-color: #ffffff !important;
+  border: none !important;
+  border-radius: 0 !important;
+  box-shadow: none !important;
 }
 
 @media (min-width: 768px) {
@@ -536,6 +546,8 @@
 .blog-html-container-single > .blog-tags {
   width: 100%;
   background-color: #ffffff !important;
+  margin: 0 !important;
+  border: none !important;
 }
 
 .blog-html-container-single > .blog-tags:empty {
@@ -555,8 +567,11 @@
   width: 100%;
   box-sizing: border-box;
   background-color: #ffffff !important;
-  margin: 0;
+  margin: 0 !important;
   padding: 1.75rem 1rem 6rem;
+  border: none !important;
+  border-radius: 0 !important;
+  box-shadow: none !important;
 }
 
 @media (min-width: 768px) {

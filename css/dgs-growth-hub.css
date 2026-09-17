@@ -288,14 +288,41 @@
 }
 
 /* ─── JUMP NAV (Growth Hub Section Navigation) ─── */
+/* position:fixed, not sticky (2026-09-19 fix): a sticky element can
+   only stay stuck as long as its own containing block (practically,
+   its nearest block ancestor — here that's <main>) hasn't scrolled
+   past; it unsticks the moment it hits that ancestor's bottom edge.
+   The Learn/Implement/Connect blog widgets are NOT inside <main> at
+   all — confirmed elsewhere in this file (GROWTH HUB FIX 3's own
+   comment): GHL renders each one as its own top-level page Section, a
+   sibling of <main>. Once scroll reaches that boundary, <main>'s own
+   box has effectively run out for sticky's purposes even though there
+   is visibly more page below, and the nav gets released — exactly the
+   reported "stops being sticky at the Learn widget." fixed sidesteps
+   this entirely: it's anchored to the viewport, not to any ancestor's
+   box, so it stays pinned for the life of the page regardless of
+   where GHL's own separate Sections fall in the DOM. z-index raised
+   well above any GHL-generated section's own (typically unspecified,
+   default-stacking) elements for the same reason. Since fixed removes
+   the nav from normal flow (sticky, even unstuck, still reserved its
+   own height), the rule below it restores that reserved space so
+   whatever follows doesn't jump up underneath it. */
 .dgs-hub-jumpnav {
-  position: sticky;
+  position: fixed;
   top: 0;
   left: 0;
   width: 100%;
-  z-index: 99;
+  z-index: 9999;
   background: #0A1F33;
   border-bottom: 1px solid var(--hub-card-border, rgba(255, 255, 255, 0.08));
+}
+
+/* Best-effort spacer matching the jumpnav's own rendered height
+   (~54px desktop: 1rem top+bottom padding + ~21px line-height + 1px
+   border) — not measured live, so treat as an estimate to nudge if
+   there's a visible gap or overlap once deployed. */
+.dgs-hub-jumpnav + * {
+  margin-top: 54px;
 }
 
 .dgs-hub-jumpnav-row {
@@ -349,10 +376,16 @@
 /* Mobile Layout (< 768px) */
 @media (max-width: 768px) {
   .dgs-hub-jumpnav {
-    position: sticky;
+    position: fixed;
     top: 0;
-    z-index: 99;
+    z-index: 9999;
     background: #0A1F33;
+  }
+
+  /* Mobile's own row padding (0.75rem 1.25rem) is slightly shorter
+     than desktop's — same estimate caveat as the desktop rule. */
+  .dgs-hub-jumpnav + * {
+    margin-top: 46px;
   }
 
   .dgs-hub-jumpnav-row {
