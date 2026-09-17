@@ -145,67 +145,80 @@
 }
 
 .blog-html-container-single {
+  position: relative;
   display: grid;
   grid-template-columns: minmax(0, 1fr);
-  max-width: 48rem;
-  margin: 0 auto;
 }
 
 /* ---------------------------------------------------------
    3. Hero band (back-link, category, title, meta line, description)
    Native render order is: image, title, category, date, content.
    Target order: back-link, category, title, meta(location/type),
-   description — single navy band, no image ever.
---------------------------------------------------------- */
-.blog-html-container-single::before {
-  content: '';
-  grid-column: 1;
-  grid-row: 1 / 6;
-  width: 100vw;
-  margin-left: calc(50% - 50vw);
-  margin-right: calc(50% - 50vw);
-  overflow: hidden;
-  /* Same teal/blue radial-glow-over-navy treatment as the Growth
-     Article hero, per the project brief's explicit "use the Growth
-     Article hero as reference — gradient, navy shading" requirement.
-     Ellipse sized 56vw x 22rem @ 50%/-18% — matching
-     dgs-growth-article.css's .dgs-ga-hero::before (the TEXT-ONLY
-     static article hero), not the native-widget .blog-html-container-
-     single::before's larger 84vw x 34rem (that size was deliberately
-     enlarged there to compensate for a much TALLER 2-column hero with
-     a featured image — this hero has no image and is exactly as short
-     as .dgs-ga-hero, so the same smaller glow reads proportionally
-     correct here too). */
-  background:
-    radial-gradient(ellipse 56vw 22rem at 50% -18%, rgba(0, 179, 159, 0.18) 0%, rgba(45, 127, 249, 0.08) 45%, transparent 75%),
-    var(--car-navy);
-}
+   description.
 
+   ONE container, single padding formula (belt-and-suspenders fixed
+   2026-09-18): every hero element gets its OWN full-bleed navy
+   background (100vw breakout) instead of a single shared pseudo-
+   element spanning a hardcoded row count. The previous version
+   reserved grid-row:1/6 assuming all 5 elements (back-link, category,
+   title, meta-line, dek) always exist — but the meta-line and dek are
+   OPTIONAL (only appear once a posting has .dgs-career-meta / a meta
+   description), so on a posting without them the reserved rows still
+   painted navy with nothing in them: a dead gap plus a visible seam
+   where the fixed-height band ended and the white content began.
+   Per-element backgrounds instead paint exactly as tall as whichever
+   elements actually exist, edge to edge, no gap and no seam.
+
+   The SAME max(1.5rem, calc(50vw - 24rem)) padding is used on every
+   hero element AND on .blog-html below (24rem = half of the 48rem
+   target reading width) — one formula, not scattered per-breakpoint
+   overrides that zero out at desktop (the earlier bug that put text
+   flush against the viewport edge). calc() uses `vw`, not `%`: these
+   elements are width:100vw breakouts, and padding percentages resolve
+   against the CONTAINING block's width, not the element's own — `vw`
+   is required to size the gutter off the real viewport instead. */
 .blog-html-container-single > .blog-back-button,
 .blog-html-container-single > .meta-section-1:has(.blog-category),
 .blog-html-container-single > .blog-content-title,
 .blog-html-container-single > .dgs-car-meta-line,
 .blog-html-container-single > .dgs-car-dek {
+  position: relative;
+  z-index: 1;
   box-sizing: border-box;
   grid-column: 1;
-  padding-left: 1rem;
-  padding-right: 1rem;
+  width: 100vw;
+  margin-left: calc(50% - 50vw);
+  margin-right: calc(50% - 50vw);
+  background-color: var(--car-navy);
+  padding-left: max(1.5rem, calc(50vw - 24rem)) !important;
+  padding-right: max(1.5rem, calc(50vw - 24rem)) !important;
 }
 
-@media (min-width: 768px) {
-  .blog-html-container-single > .blog-back-button,
-  .blog-html-container-single > .meta-section-1:has(.blog-category),
-  .blog-html-container-single > .blog-content-title,
-  .blog-html-container-single > .dgs-car-meta-line,
-  .blog-html-container-single > .dgs-car-dek {
-    padding-left: 0;
-    padding-right: 0;
-  }
+/* Decorative glow only — NOT a background on any real element (a
+   background can never paint past its own element's box, so a glow
+   meant to visually span several short elements has to be its own
+   layer). Fixed height, not tied to hero row count. Sits above the
+   solid-navy elements (z-index) but stays low-alpha so text (inside
+   those same navy elements, in normal flow beneath this) stays fully
+   readable through the tint — same teal/blue stops as the Growth
+   Article hero, sized like dgs-growth-article.css's .dgs-ga-hero::before
+   (the text-only static reference), not the taller native-widget
+   version built for a 2-column image hero. */
+.blog-html-container-single::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 50%;
+  z-index: 2;
+  width: 100vw;
+  height: 24rem;
+  transform: translateX(-50%);
+  background: radial-gradient(ellipse 56vw 22rem at 50% -18%, rgba(0, 179, 159, 0.18) 0%, rgba(45, 127, 249, 0.08) 45%, transparent 75%);
+  pointer-events: none;
 }
 
 .blog-html-container-single > .blog-back-button {
   order: 1;
-  grid-row: 1;
   display: flex !important;
   align-items: center;
   gap: 0.4rem;
@@ -237,7 +250,6 @@
 
 .blog-html-container-single > .meta-section-1:has(.blog-category) {
   order: 2;
-  grid-row: 2;
   padding-top: 0 !important;
   padding-bottom: 1rem !important;
 }
@@ -256,7 +268,6 @@
 
 .blog-html-container-single > .blog-content-title {
   order: 3;
-  grid-row: 3;
   padding-top: 0 !important;
   padding-bottom: 1.25rem !important;
   margin: 0 !important;
@@ -279,10 +290,11 @@
    (.dgs-career-post > .dgs-career-meta, authored once per posting,
    same mechanism the lead paragraph/responsibilities already use —
    GHL has no dedicated Location/Employment Type field to read
-   instead, confirmed against the live posting) up into the hero. */
+   instead, confirmed against the live posting) up into the hero.
+   Optional: simply absent (no reserved space, see above) on a
+   posting that hasn't authored .dgs-career-meta yet. */
 .blog-html-container-single > .dgs-car-meta-line {
   order: 4;
-  grid-row: 4;
   padding-top: 0 !important;
   padding-bottom: 1rem !important;
   margin: 0 !important;
@@ -294,10 +306,11 @@
 
 /* Description: js/careers.js inserts this from the post's own
    <meta name="description"> — same proven technique as .dgs-ga-dek
-   in dgs-growth-article.css (real per-post SEO data, not invented). */
+   in dgs-growth-article.css (real per-post SEO data, not invented).
+   Optional: simply absent (no reserved space) if the posting has no
+   meta description. */
 .blog-html-container-single > .dgs-car-dek {
   order: 5;
-  grid-row: 5;
   padding-top: 0 !important;
   padding-bottom: 2.75rem !important;
   margin: 0 !important;
@@ -522,8 +535,6 @@
   order: 9;
   grid-column: 1;
   padding: 1.5rem 1rem 4rem;
-  border-top: 1px solid var(--car-hairline);
-  margin-top: 1rem;
 }
 
 @media (min-width: 768px) {
@@ -534,13 +545,21 @@
 }
 
 .blog-html-container-single > .hl-blog-content-back-to-top-container .back-to-top {
+  display: inline-block;
   font-family: var(--font-body) !important;
   font-size: 0.9rem !important;
   font-weight: 600 !important;
   color: var(--car-teal) !important;
   background: none !important;
+  background-color: transparent !important;
   border: none !important;
+  outline: none !important;
+  box-shadow: none !important;
+  border-radius: 0 !important;
+  -webkit-appearance: none !important;
+  appearance: none !important;
   padding: 0 !important;
+  margin: 0 auto !important;
   cursor: pointer;
 }
 
