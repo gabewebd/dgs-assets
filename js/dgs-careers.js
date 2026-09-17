@@ -186,12 +186,53 @@
      as unused dead code. Growth Hub's own .dgs-ga-toc equivalent in
      dgs-growth-article.js is untouched. */
 
+  /* ============================================================
+     LISTING PAGE (career-main-layout.html) — everything below
+     no-ops harmlessly on the detail page, which has no
+     .hl-blog-post-home at all.
+     ============================================================ */
+
+  /* ─── GHL: un-nest the "Grid" layout widget's cards ───
+     GHL's Blog List widget renders TWO different DOM shapes depending
+     on its own "Compact" vs "Grid" layout setting. Compact (confirmed
+     live) repeats .blog-post-wrapper-compact as proper siblings under
+     .flex.flex-wrap — that shape already works correctly with the
+     CSS grid in dgs-careers.css. Grid mode (also confirmed live,
+     2026-09-19 saved copy of the Careers page) instead renders each
+     job's .blog-post-wrapper-list ONE CLOSING </div> SHORT of properly
+     closing itself before the next job starts — so every job after
+     the first ends up nested INSIDE the previous job's card instead
+     of sitting beside it as a sibling. A CSS grid only ever lays out
+     its own DIRECT children, so with every card after the first
+     buried inside card #1, the grid has exactly one item to place:
+     card #1 (narrow, in column 1) with every other job rendering in
+     plain block flow underneath it and the other 1-2 grid columns
+     sitting empty — the "3 items became 1 narrow column + a huge gap"
+     symptom. No CSS selector can undo bad nesting, so this walks the
+     real (already browser-corrected) DOM and promotes every
+     .blog-post-wrapper-list to a direct child of .blog-post-wrapper,
+     in document order, restoring a flat sibling list dgs-careers.css's
+     grid can actually distribute into columns. Idempotent: no-ops the
+     moment the structure is already flat, so the MutationObserver
+     below can call this on every mutation (including its own) without
+     looping. */
+  function flattenGridCards() {
+    var wrapper = document.querySelector('.hl-blog-post-home .blog-post-wrapper');
+    if (!wrapper) return;
+    var cards = Array.prototype.slice.call(wrapper.querySelectorAll('.blog-post-wrapper-list'));
+    if (!cards.length) return;
+    var alreadyFlat = cards.every(function (card) { return card.parentNode === wrapper; });
+    if (alreadyFlat) return;
+    cards.forEach(function (card) { wrapper.appendChild(card); });
+  }
+
   function syncGhlCareer() {
     insertMetaLine();
     insertDek();
     renameBackButton();
     updateProgress();
     fixBackToTop();
+    flattenGridCards();
   }
 
   ensureProgressBar();

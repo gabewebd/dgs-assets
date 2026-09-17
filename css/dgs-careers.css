@@ -466,6 +466,181 @@
   }
 }
 
+/* ============================================================
+   CAREERS PAGE — GHL "GRID" LAYOUT LIST WIDGET
+   ------------------------------------------------------------
+   Alternate DOM/classes GHL's Blog List widget renders when its own
+   layout setting is switched from "Compact" to "Grid" (confirmed
+   live, 2026-09-19 saved copy of the Careers page):
+
+     .hl-blog-post-home
+       > .flex.flex-wrap
+         > .blog-post-wrapper                (single wrapper — GHL's
+                                               own live markup mis-nests
+                                               every job's
+                                               .blog-post-wrapper-list
+                                               INSIDE the previous job's
+                                               instead of beside it as
+                                               a sibling; js/dgs-careers.js's
+                                               flattenGridCards() promotes
+                                               them all to direct
+                                               children of THIS element
+                                               first — a CSS grid only
+                                               lays out direct children,
+                                               so nothing below does
+                                               anything useful until
+                                               that JS fix has run)
+           > .blog-post-wrapper-list.three-col     (repeats per job)
+             > .blog-post-wrapper-wrapper
+               > .blog-box
+                 > a                          (empty image link — no
+                                               featured image on any
+                                               Careers job, confirmed)
+                 > .standard-blog-content
+                   > h2.blog-title > a        (job title + link)
+                   > .flex.items-center        (category/date slot,
+                     > .text-black.text-xs x2   both empty, same as
+                                                 the Compact widget)
+                   > p.blog-description
+                   > .flex.flex-wrap           (empty tags slot)
+                   > .flex > a.blog-button.readme-btn  (Read more)
+
+   Every selector below is scoped under .hl-blog-post-home, so this
+   can never leak onto Growth Hub's own blog listing or any other GHL
+   blog widget elsewhere on the site. Kept as its own block (not
+   merged into the Compact rules above) since it targets a completely
+   different class family for the same visual result.
+   ============================================================ */
+
+/* .blog-post-wrapper is .flex.flex-wrap's ONLY child in Grid mode —
+   without this it would be squeezed into just the first track of the
+   outer grid above (2/3 columns sitting empty beside it) instead of
+   using the full row to lay out its OWN grid of cards below. */
+.hl-blog-post-home > .flex.flex-wrap > .blog-post-wrapper {
+  grid-column: 1 / -1;
+}
+
+.hl-blog-post-home .blog-post-wrapper {
+  display: grid !important;
+  grid-template-columns: 1fr;
+  gap: 1.5rem;
+  width: 100%;
+}
+
+@media (min-width: 700px) {
+  .hl-blog-post-home .blog-post-wrapper {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+}
+
+@media (min-width: 1100px) {
+  .hl-blog-post-home .blog-post-wrapper {
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+  }
+}
+
+.hl-blog-post-home .blog-post-wrapper-list {
+  display: flex;
+  min-width: 0;
+  width: 100%;
+}
+
+.hl-blog-post-home .blog-post-wrapper-wrapper {
+  display: flex;
+  flex-direction: column;
+  width: 100%;
+  background: #ffffff;
+  border: 1px solid #E2E8F0;
+  border-radius: var(--radius-xl, 16px);
+  box-shadow: 0 4px 20px rgba(10, 31, 51, 0.03);
+  transition: all 0.35s var(--ease-out, ease-out);
+  overflow: hidden;
+}
+
+.hl-blog-post-home .blog-post-wrapper-wrapper:hover {
+  border-color: rgba(0, 179, 159, 0.3);
+  transform: translateY(-4px);
+  box-shadow: 0 16px 36px rgba(10, 31, 51, 0.07);
+}
+
+/* Empty image slot: confirmed empty on every live Careers job (no
+   featured image) — hidden outright so it can't reserve a
+   thumbnail-height area above the text. */
+.hl-blog-post-home .blog-box > a {
+  display: none !important;
+}
+
+.hl-blog-post-home .standard-blog-content {
+  display: flex;
+  flex-direction: column;
+  gap: 0.65rem;
+  padding: 2rem;
+  width: 100%;
+}
+
+/* Category/date meta row: both slots confirmed empty on every live
+   Careers posting (same GHL per-list "show category/date" toggle the
+   Compact widget above also leaves off) — collapses instead of
+   reserving a blank row while it stays empty. */
+.hl-blog-post-home .standard-blog-content > .flex.items-center:has(.text-black.text-xs:empty):not(:has(.text-black.text-xs:not(:empty))) {
+  display: none;
+}
+
+.hl-blog-post-home h2.blog-title {
+  font-family: var(--font-heading, 'Sora', sans-serif) !important;
+  font-size: 1.3rem !important;
+  font-weight: 800 !important;
+  letter-spacing: -0.015em !important;
+  text-transform: none !important;
+  margin: 0 !important;
+  line-height: 1.25 !important;
+}
+
+.hl-blog-post-home h2.blog-title a {
+  color: var(--bg-deep-navy, #0A1F33) !important;
+  text-decoration: none !important;
+  transition: color 0.3s ease;
+}
+
+.hl-blog-post-home .blog-post-wrapper-wrapper:hover h2.blog-title a {
+  color: var(--action-teal, #00b39f) !important;
+}
+
+.hl-blog-post-home p.blog-description {
+  font-family: var(--font-body, 'Inter', sans-serif) !important;
+  font-size: 0.92rem !important;
+  color: var(--text-dark-muted, #5a6e85) !important;
+  line-height: 1.6 !important;
+  margin: 0 !important;
+}
+
+.hl-blog-post-home .standard-blog-content > .flex.flex-wrap:empty {
+  display: none;
+}
+
+.hl-blog-post-home a.blog-button.readme-btn {
+  font-family: var(--font-body, 'Inter', sans-serif) !important;
+  font-size: 0.95rem !important;
+  font-weight: 650 !important;
+  color: var(--action-teal, #00b39f) !important;
+  text-decoration: none !important;
+  display: inline-flex !important;
+  align-items: center !important;
+  gap: 0.4rem !important;
+  margin-top: 0.5rem !important;
+}
+
+.hl-blog-post-home a.blog-button.readme-btn svg {
+  width: 18px !important;
+  height: 18px !important;
+  stroke: currentColor !important;
+  transition: transform 0.25s var(--ease-out, ease-out);
+}
+
+.hl-blog-post-home a.blog-button.readme-btn:hover svg {
+  transform: translateX(4px);
+}
+
 /* Card unit. GHL's "compact list" layout repeats
    .blog-post-wrapper-compact per job (verified against the one live
    posting; if a listing with 2+ jobs ever shows the repeat happening

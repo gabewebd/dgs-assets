@@ -201,10 +201,19 @@
   z-index: 1;
   box-sizing: border-box;
   grid-column: 1;
-  width: 100vw;
-  margin-left: calc(50% - 50vw);
-  margin-right: calc(50% - 50vw);
-  background-color: var(--car-navy);
+  /* !important on width/margin/background too (not just padding):
+     these are the properties that actually PERFORM the full-bleed
+     breakout, so anything downstream (a later rule's shorthand
+     `margin`, a GHL live default, a stray specificity fight) that
+     nudges any one of them back to normal silently un-breaks the
+     hero without ever touching `display`/`padding` — exactly what
+     happened with the per-element `margin: 0 !important` mistake
+     below. Making the breakout itself non-negotiable is cheaper than
+     re-discovering this every time a new rule gets added here. */
+  width: 100vw !important;
+  margin-left: calc(50% - 50vw) !important;
+  margin-right: calc(50% - 50vw) !important;
+  background-color: var(--car-navy) !important;
   padding-left: max(1.5rem, calc(50vw - 24rem)) !important;
   padding-right: max(1.5rem, calc(50vw - 24rem)) !important;
 }
@@ -286,7 +295,16 @@
   order: 3;
   padding-top: 0 !important;
   padding-bottom: 1.25rem !important;
-  margin: 0 !important;
+  /* margin-TOP/BOTTOM only, never the `margin` shorthand: the shared
+     full-bleed rule above sets margin-left/margin-right: calc(50% -
+     50vw) to breakout to 100vw. A shorthand `margin: 0 !important`
+     here resets ALL FOUR sides (left/right included), silently
+     cancelling that breakout and leaving this element in its normal,
+     non-full-bleed position — the exact bug that made the title (and
+     the description below, same mistake) render as a narrower,
+     inset box instead of the full-bleed navy band. */
+  margin-top: 0 !important;
+  margin-bottom: 0 !important;
   font-family: var(--font-heading) !important;
   font-weight: 800 !important;
   /* Exact same scale as dgs-growth-article.css's
@@ -317,7 +335,11 @@
   order: 4;
   padding-top: 0 !important;
   padding-bottom: 1rem !important;
-  margin: 0 !important;
+  /* margin-TOP/BOTTOM only — see the same note on .blog-content-title
+     above; `margin: 0 !important` here would cancel this element's
+     own full-bleed margin-left/margin-right too. */
+  margin-top: 0 !important;
+  margin-bottom: 0 !important;
   font-family: var(--font-body) !important;
   font-size: 0.88rem !important;
   font-weight: 600 !important;
@@ -347,7 +369,16 @@
   order: 5;
   padding-top: 0 !important;
   padding-bottom: 2.75rem !important;
-  margin: 0 !important;
+  /* margin-TOP/BOTTOM only, never the `margin` shorthand — same
+     mistake as .blog-content-title/.dgs-car-meta-line above:
+     `margin: 0 !important` also zeroes margin-left/margin-right,
+     cancelling THIS element's own full-bleed breakout
+     (margin-left/right: calc(50% - 50vw) from the shared rule) and
+     leaving it in its normal, non-full-bleed position — a narrower
+     box that visibly floats below/left of the rest of the hero
+     instead of sitting flush inside it. */
+  margin-top: 0 !important;
+  margin-bottom: 0 !important;
   /* NO max-width here: this element is also in the shared full-bleed
      selector above, which already sets width:100vw (border-box) plus
      a padding formula that centers a ~48rem reading column on its
