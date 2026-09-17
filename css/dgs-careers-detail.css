@@ -150,6 +150,19 @@
   grid-template-columns: minmax(0, 1fr);
   justify-items: center;
   text-align: center;
+  /* ONE navy background on the container itself (v3, 2026-09-19) —
+     not on each hero element separately. Giving back-link/category/
+     title/description each their OWN width:100%+background+padding
+     independently was fragile: any tiny mismatch between them (and
+     one kept appearing — a visibly narrower, darker "boxed" title+
+     description live on tablet/laptop widths, confirmed live
+     screenshots) showed up as a broken seam, because there were 4
+     separate sources of truth for "how wide is the navy band" instead
+     of one. With the background here instead, every hero element
+     just needs padding for text measure — the WIDTH FIX above already
+     makes this container itself the true full available width, so
+     there's nothing left to disagree about. */
+  background-color: var(--car-navy);
 }
 
 /* WIDTH FIX v2 (2026-09-19) — the width:100vw negative-margin
@@ -201,65 +214,50 @@
    actually put them (explicit correction, 2026-09-19) — this
    template no longer relocates that element into the hero at all.
 
-   Every hero element gets its OWN navy background, width:100% of
-   .blog-html-container-single (not the viewport), so the band is
-   always exactly as tall as whichever elements actually exist —
-   back-link, category and title always do; the description
-   (.dgs-car-dek) is optional (only appears once a posting has a meta
-   description) and simply isn't there otherwise, no reserved empty
-   space and no seam.
+   The navy comes from ONE background on .blog-html-container-single
+   itself (see above), so the band is naturally exactly as tall as
+   whichever elements actually exist — back-link, category and title
+   always do; the description (.dgs-car-dek) is optional (only
+   appears once a posting has a meta description) and simply isn't
+   there otherwise, no reserved empty space and no seam.
 
    The SAME max(1.5rem, calc(50% - 24rem)) padding is used on every
    hero element AND on .blog-html below (24rem = half of the 48rem
    target reading width) — one formula, not scattered per-breakpoint
-   overrides. calc() uses `%`, NOT `vw` (real bug, found live,
-   2026-09-19): `vw` is relative to the browser viewport, which was
-   correct back when these elements did a width:100vw breakout — now
-   that the breakout is gone and they're just width:100% of whatever
-   width GHL's own container actually renders at (which the WIDTH FIX
-   above forces to 100% of ITS parent, not necessarily the full
-   browser viewport), `vw`-based padding still assumed full-viewport
-   width and oversized itself the moment the real container was
-   narrower — eating the entire content area and collapsing the text
-   (the exact "post description is collapsing" symptom). `%` for
-   padding resolves against the CONTAINING BLOCK's actual width, which
-   for a width:100% element IS this element's real rendered width, so
-   it correctly centers a readable measure regardless of how wide the
-   container legitimately is. */
+   overrides. `%` (not `vw`) resolves against the CONTAINING BLOCK's
+   actual rendered width, so it correctly centers a readable measure
+   regardless of how wide the container legitimately is. No width or
+   background on these elements anymore — see the container rule
+   above for why. */
 .blog-html-container-single > .blog-back-button,
 .blog-html-container-single > .meta-section-1:has(.blog-category),
 .blog-html-container-single > .blog-content-title,
 .blog-html-container-single > .dgs-car-dek {
-  position: relative;
-  z-index: 1;
-  box-sizing: border-box;
   grid-column: 1;
-  width: 100%;
-  background-color: var(--car-navy) !important;
-  padding-left: max(1.5rem, calc(50% - 24rem)) !important;
-  padding-right: max(1.5rem, calc(50% - 24rem)) !important;
+  box-sizing: border-box;
+  padding-left: max(1.5rem, calc(50% - 24rem));
+  padding-right: max(1.5rem, calc(50% - 24rem));
 }
 
-/* Decorative glow only — NOT a background on any real element (a
-   background can never paint past its own element's box, so a glow
-   meant to visually span several short elements has to be its own
-   layer). Fixed height, not tied to hero row count. Sits above the
-   solid-navy elements (z-index) but stays low-alpha so text (inside
-   those same navy elements, in normal flow beneath this) stays fully
-   readable through the tint. width:100% (not 100vw) for the same
-   reason as the hero elements above — nothing here needs to reach
-   the true viewport edge now that the container itself is full width. */
+/* Decorative glow, painted on top of the container's own navy
+   background (set above). Fixed height, not tied to hero row count.
+   Low-alpha so text stays fully readable through the tint. */
 .blog-html-container-single::before {
   content: '';
   position: absolute;
   top: 0;
   left: 0;
   right: 0;
-  z-index: 2;
+  z-index: 0;
   width: 100%;
   height: 24rem;
   background: radial-gradient(ellipse 56vw 22rem at 50% -18%, rgba(0, 179, 159, 0.18) 0%, rgba(45, 127, 249, 0.08) 45%, transparent 75%);
   pointer-events: none;
+}
+
+.blog-html-container-single > * {
+  position: relative;
+  z-index: 1;
 }
 
 .blog-html-container-single > .blog-back-button {
@@ -385,6 +383,11 @@
   width: 100%;
   padding: 3rem 1rem 1rem;
   text-align: left;
+  /* Opaque white "turns off" the container's own navy background for
+     this region — a normal-flow child's own background always paints
+     over its parent's, so this needs nothing fancier than a plain
+     background-color. */
+  background-color: #ffffff;
 }
 
 @media (min-width: 768px) {
@@ -550,6 +553,8 @@
 .blog-html-container-single > .blog-tags {
   order: 8;
   grid-column: 1;
+  width: 100%;
+  background-color: #ffffff;
 }
 
 .blog-html-container-single > .blog-tags:empty {
@@ -559,7 +564,10 @@
 .blog-html-container-single > .hl-blog-content-back-to-top-container {
   order: 9;
   grid-column: 1;
+  width: 100%;
+  box-sizing: border-box;
   padding: 1.5rem 1rem 4rem;
+  background-color: #ffffff;
 }
 
 @media (min-width: 768px) {
