@@ -1617,3 +1617,41 @@
   transform: translateX(4px);
 }
 
+/* GROWTH HUB FIX 6: NAVY GAP AFTER THE WIDGET, MOBILE ONLY
+   Same root cause already confirmed and fixed on the Careers listing
+   widget (css/dgs-careers.css) — this file's own FIX 3 comment above
+   already established the mechanism: GHL renders its Blog Posts
+   widget as its own top-level page Section, a sibling of <main>, not
+   nested inside #learn/#implement/#connect at all. That Section's own
+   GHL-generated style leaves its background transparent, so whatever
+   the page's default canvas color is behind it shows through — on
+   Careers that was a full navy bleed; here on Growth Hub it only
+   showed as a thin navy strip in the gap after the widget on mobile
+   (the exact "empty space + navy bar" reported), because at wider
+   widths something else in the layout happens to cover the same
+   ancestor area, and only mobile's collapsed layout exposes it.
+   Same fix: force white/full-width/zero spacing up the real, stable
+   ancestor chain (never the random per-element ID classes GHL
+   regenerates on every edit), scoped narrowly with
+   :has(.hl-blog-post-home) so it can never touch any other
+   custom-code Section on the page (Careers' own listing, the footer's
+   custom-code paste, etc.). */
+.fullSection:has(.hl-blog-post-home),
+.c-row:has(.hl-blog-post-home),
+.c-column:has(.hl-blog-post-home),
+.c-custom-code:has(.hl-blog-post-home),
+.custom-code-container:has(.hl-blog-post-home),
+.vertical.inner:has(.hl-blog-post-home) {
+  background-color: #ffffff !important;
+  background-image: none !important;
+  width: 100% !important;
+  max-width: 100% !important;
+  border: none !important;
+  padding: 0 !important;
+  margin: 0 !important;
+}
+
+.hl-blog-post-home {
+  background-color: #ffffff !important;
+}
+
