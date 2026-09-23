@@ -53,7 +53,31 @@
     return 'https://images.unsplash.com/photo-' + id + '?q=80&w=1600&auto=format';
   }
 
-  var DGS_EVENTS = [
+var DGS_EVENTS = [
+    {
+      id: 'https://assets.cdn.filesafe.space/UAA13luwQZmtw8ObS1Su/media/6ab3c7ad18384d888bb005d8.jpg', w: 1000, h: 750,
+      alt: 'AI Workshop in BGC',
+      title: 'AI Workshop, BGC',
+      year: 2026
+    },
+    {
+      id: 'https://assets.cdn.filesafe.space/UAA13luwQZmtw8ObS1Su/media/6ab3c7adf07a3cb6d48c802c.jpg', w: 1000, h: 750,
+      alt: 'Top 100 Filipinos on LinkedIn',
+      title: 'Top 100 Filipinos on LinkedIn',
+      year: 2026
+    },
+    {
+      id: 'https://assets.cdn.filesafe.space/UAA13luwQZmtw8ObS1Su/media/6ab3c7ad89b8b9422b969f3c.jpg', w: 1000, h: 750,
+      alt: 'ELEVATE Business Leadership Summit 2026',
+      title: 'ELEVATE Business Leadership Summit',
+      year: 2026
+    },
+    {
+      id: 'https://assets.cdn.filesafe.space/UAA13luwQZmtw8ObS1Su/media/6ab3c7adfef86e60d51e963e.jpg', w: 1000, h: 750,
+      alt: 'HREX Manila exhibition and conference',
+      title: 'HREX Manila',
+      year: 2026
+    },
     {
       id: 'https://assets.cdn.filesafe.space/UAA13luwQZmtw8ObS1Su/media/6a97c9cec7069f4fc7b07bd5.jpg', w: 1000, h: 750,
       alt: 'Induction and General Membership Meeting of the Philippine Chamber of Commerce and Industry, Quezon City',
